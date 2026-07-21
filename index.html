@@ -153,12 +153,14 @@
 
   footer{border-top:1px solid var(--line);margin-top:30px;padding:30px 0 60px;color:var(--muted);font-size:13.5px;line-height:1.7}
   footer b{color:var(--paper);font-weight:500}
+  .copyright{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.2px;color:var(--muted2)}
   .method{max-width:760px}
   ::selection{background:rgba(243,195,76,.28)}
   @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
   /* tabs */
-  .tabs{position:sticky;top:56px;z-index:15;display:flex;gap:6px;padding:10px 22px;
+  .tabs{position:sticky;top:56px;z-index:15;display:flex;flex-wrap:wrap;gap:6px;padding:10px 22px;
     background:var(--bar);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .tab{font-family:"IBM Plex Mono",monospace;font-size:12.5px;letter-spacing:.4px;color:var(--muted);
     background:none;border:1px solid transparent;border-radius:999px;padding:8px 16px;cursor:pointer;
@@ -224,6 +226,33 @@
   .dish-card .dd{font-size:12px;color:var(--muted);line-height:1.45;margin-top:3px}
   .loaderr{display:flex;align-items:center;justify-content:center;height:100%;min-height:180px;
     padding:24px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+  /* notebook */
+  .nb-actions{display:flex;gap:12px;align-items:center;margin:2px 0 22px;flex-wrap:wrap}
+  .dlbtn{display:inline-flex;align-items:center;gap:8px;background:var(--saffron);color:var(--onacc);
+    border:0;border-radius:10px;padding:11px 16px;font-family:"IBM Plex Mono",monospace;font-size:13px;
+    font-weight:500;cursor:pointer;letter-spacing:.3px}
+  .dlbtn:hover{filter:brightness(1.06)}
+  .nb-note{color:var(--muted);font-size:12.5px}
+  .nb-md{color:var(--paper);font-size:14.5px;line-height:1.62;margin:16px 2px}
+  .nb-md h2{font-family:"Fraunces",serif;font-weight:500;font-size:23px;margin:8px 0 4px}
+  .nb-md h3{font-family:"Fraunces",serif;font-weight:500;font-size:18px;margin:4px 0}
+  .nb-md p{margin:6px 0;color:var(--muted)}
+  .nb-md strong{color:var(--paper);font-weight:600}
+  .nb-md code{background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;
+    font-family:"IBM Plex Mono",monospace;font-size:.88em;color:var(--paper)}
+  .nb-md blockquote{border-left:3px solid var(--amber);margin:8px 0;padding:3px 0 3px 14px;
+    color:var(--muted);font-size:13.5px}
+  .nb-md hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+  .nb-code{display:grid;grid-template-columns:58px 1fr;margin:10px 0;border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;background:var(--panel)}
+  .nb-prompt{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted2);padding:13px 8px;
+    text-align:right;background:var(--panel2);border-right:1px solid var(--line);user-select:none}
+  .nb-code pre{margin:0;padding:13px 15px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px;line-height:1.55;color:var(--paper);white-space:pre;tab-size:4}
+  .nb-code .k{color:var(--amber)}
+  .nb-code .s{color:var(--sage)}
+  .nb-code .c{color:var(--muted2);font-style:italic}
+  .nb-code .nu{color:var(--paprika)}
 </style>
 </head>
 <body>
@@ -250,12 +279,13 @@
   <button class="tab on" data-tab="tab-atlas" role="tab">Atlas</button>
   <button class="tab" data-tab="tab-method" role="tab">Method &amp; Data</button>
   <button class="tab" data-tab="tab-dishes" role="tab">Signature Dishes</button>
+  <button class="tab" data-tab="tab-notebook" role="tab">Notebook</button>
 </nav>
 
 <div class="wrap">
   <div class="tabpane" id="tab-atlas">
   <header class="hero">
-    <div class="eyebrow">Culinary Cartography</div>
+    <div class="eyebrow">Culinary Cartography · A personal food atlas</div>
     <h1>Flavor has a geography <em>of its own</em>.</h1>
     <p class="lede">Borders divide countries; palates ignore them. This atlas scores forty national cuisines across nineteen ingredient and flavor axes, then measures how close any two really taste. Pick a cuisine — the map re-colors to show its culinary next-of-kin.</p>
     <div class="stats">
@@ -331,6 +361,7 @@
       <br><br>
       <b>A caveat worth tasting.</b> These scores are an informed heuristic, not a survey of every kitchen. National cuisines are internally vast — "India" or "China" flatten a dozen distinct regional traditions into one point. Read this as a conversation starter about how palates relate, not a verdict. Numbers are relative and comparative, never absolute.
     </div>
+    <div class="copyright">© 2026 Ahmet Alper Kunt · A personal, non‑commercial food atlas — free to explore, use and share. Made with AI.</div>
   </footer>
   </div><!-- /tab-atlas -->
 
@@ -400,6 +431,165 @@
     </div>
     <div class="dish-grid" id="dishgrid"></div>
   </div><!-- /tab-dishes -->
+
+  <div class="tabpane" id="tab-notebook" hidden>
+    <header class="hero" style="padding:46px 0 6px">
+      <div class="eyebrow">Reproducible steps</div>
+      <h1 style="font-size:clamp(32px,5vw,56px)">The <em>notebook</em>.</h1>
+      <p class="lede">Every step behind the atlas, as a Python notebook you can read here — or download and run yourself in Jupyter Lab. Same pipeline: score, standardize, measure, cluster, map.</p>
+    </header>
+    <div class="nb-actions">
+      <button class="dlbtn" id="dlipynb">⬇&nbsp; Download .ipynb</button>
+      <span class="nb-note">Needs Python with numpy · pandas · scikit-learn · plotly</span>
+    </div>
+    <div id="nbcells"></div>
+
+<script type="text/x-nb" data-t="md">
+# The Taste Atlas — reproducible notebook
+This rebuilds the whole analysis: scoring cuisines on 19 palate axes, measuring how alike they taste, clustering them into taste regions, and drawing the heatmap map. Run the cells top to bottom.
+> The 0–10 scores are an informed heuristic, not a survey — read every number as comparative, not absolute.
+</script>
+<script type="text/x-nb" data-t="code">
+# install once if needed:
+# %pip install numpy pandas scikit-learn plotly
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+import plotly.express as px
+</script>
+<script type="text/x-nb" data-t="md">
+## 1 · The data — 40 cuisines, 19 axes
+Each cuisine is scored 0–10 on: heat, spice depth, sour, sweet-savoury, umami, fresh herbs, dairy, cooking oil, rice, wheat, noodle, seafood, pork, red meat, legume, grilling, stewing, frying and raw prep.
+</script>
+<script type="text/x-nb" data-t="code">
+AX = ['heat','spice','sour','sweet','umami','herbs','dairy','oil','rice','wheat',
+      'noodle','seafood','pork','redMeat','legume','grill','stew','fry','raw']
+
+rows = [
+    ('Italy','Europe',[2,3,3,2,6,7,7,8,3,8,6,6,7,5,4,4,5,4,3]),
+    ('France','Europe',[1,3,3,3,6,6,8,6,2,8,2,6,7,6,4,3,7,4,3]),
+    ('Spain','Europe',[2,4,3,2,6,4,5,8,4,7,2,8,7,5,5,5,5,5,3]),
+    ('Portugal','Europe',[3,4,3,3,6,4,4,7,4,7,2,9,7,5,5,4,5,5,2]),
+    ('Greece','Europe',[1,4,5,2,5,7,7,9,3,7,2,7,4,6,6,6,5,4,3]),
+    ('Turkey','W. Asia',[3,5,4,3,5,6,7,7,5,8,2,4,1,8,6,7,5,4,2]),
+    ('Germany','Europe',[1,3,4,3,5,3,7,4,2,8,3,3,8,6,4,3,6,4,2]),
+    ('United Kingdom','Europe',[1,2,2,2,4,2,6,4,3,8,2,5,6,6,3,3,6,5,2]),
+    ('Poland','Europe',[1,2,5,2,5,4,7,4,3,7,3,3,8,6,5,3,7,4,2]),
+    ('Russia','Europe',[1,2,5,2,4,4,7,4,4,7,3,4,6,6,5,3,7,4,3]),
+    ('Sweden','Europe',[1,2,4,3,5,3,6,4,2,7,2,7,6,5,3,3,5,4,4]),
+    ('Lebanon','W. Asia',[2,5,6,2,4,9,6,9,4,7,2,4,1,7,7,7,4,4,4]),
+    ('Iran','W. Asia',[2,5,5,4,4,7,6,7,8,5,2,3,1,8,6,6,6,3,2]),
+    ('Morocco','N. Africa',[3,7,4,5,4,6,3,7,3,6,2,5,1,7,6,5,7,3,2]),
+    ('Egypt','N. Africa',[3,5,4,2,4,5,4,6,5,6,3,4,2,6,8,4,6,4,2]),
+    ('Israel','W. Asia',[3,6,5,3,4,8,5,8,4,6,2,4,1,6,8,6,4,4,4]),
+    ('Ethiopia','Africa',[6,8,6,2,4,4,3,4,2,4,2,2,1,7,8,3,7,3,2]),
+    ('Nigeria','Africa',[7,6,3,2,4,3,2,7,4,3,2,5,4,6,6,4,7,6,1]),
+    ('Senegal','Africa',[5,5,4,3,4,3,2,6,7,3,2,8,3,5,5,4,6,5,1]),
+    ('South Africa','Africa',[4,5,4,4,4,3,4,5,4,6,2,6,6,7,4,8,5,4,2]),
+    ('India','S. Asia',[7,9,5,4,4,6,7,6,8,6,2,4,1,6,8,4,7,5,1]),
+    ('Pakistan','S. Asia',[7,9,4,3,4,5,7,6,6,7,2,3,1,8,7,6,7,5,1]),
+    ('Sri Lanka','S. Asia',[8,8,6,3,5,5,4,6,9,3,2,7,3,5,7,3,7,5,1]),
+    ('Bangladesh','S. Asia',[6,7,4,3,5,5,4,6,9,4,2,8,1,5,7,3,7,5,1]),
+    ('China','E. Asia',[4,5,4,4,8,4,2,6,7,6,7,7,8,5,4,4,6,7,3]),
+    ('Japan','E. Asia',[1,3,4,3,9,4,2,4,8,4,6,9,6,4,4,4,5,5,7]),
+    ('South Korea','E. Asia',[6,5,6,4,8,4,2,6,8,4,5,7,7,6,4,6,5,5,3]),
+    ('Taiwan','E. Asia',[3,4,4,4,8,4,2,6,7,5,6,8,7,4,4,4,6,6,3]),
+    ('Thailand','SE. Asia',[8,6,8,5,7,8,2,6,8,3,5,7,5,4,3,4,4,6,3]),
+    ('Vietnam','SE. Asia',[5,4,7,4,7,9,2,5,8,4,6,8,5,4,3,5,4,5,4]),
+    ('Indonesia','SE. Asia',[7,7,5,5,6,5,2,7,8,3,4,7,3,5,5,6,6,7,2]),
+    ('Malaysia','SE. Asia',[7,7,5,5,6,5,2,7,8,4,5,8,4,5,5,5,6,7,2]),
+    ('Philippines','SE. Asia',[3,3,7,4,6,3,2,5,8,4,4,8,8,5,3,5,6,6,2]),
+    ('Mexico','Americas',[7,6,6,3,5,6,4,5,3,4,2,5,6,6,7,6,6,6,2]),
+    ('United States','Americas',[3,3,3,4,5,3,6,5,4,7,3,5,7,7,4,7,4,7,2]),
+    ('Brazil','Americas',[3,3,4,3,4,4,3,5,6,5,2,6,6,7,7,7,6,6,2]),
+    ('Peru','Americas',[5,4,6,3,5,6,3,5,6,4,2,8,4,6,5,5,5,6,5]),
+    ('Argentina','Americas',[1,2,3,2,4,5,5,5,3,6,2,4,4,9,3,9,4,4,2]),
+    ('Jamaica','Americas',[7,7,4,4,4,5,2,5,6,4,2,6,5,5,5,7,6,5,1]),
+    ('Australia','Oceania',[2,3,3,3,5,4,5,5,4,7,3,7,5,6,3,7,4,5,3]),
+]
+
+df = pd.DataFrame([r[2] for r in rows], columns=AX, index=[r[0] for r in rows])
+df.insert(0, 'region', [r[1] for r in rows])
+df.head()
+</script>
+<script type="text/x-nb" data-t="md">
+## 2 · Standardize
+Put every axis on the same footing with z-scores, so a big-numbers axis can't dominate the distances.
+> **Why z-scores?** The simplest way to make 19 differently-scaled axes count equally.
+</script>
+<script type="text/x-nb" data-t="code">
+X = StandardScaler().fit_transform(df[AX])
+</script>
+<script type="text/x-nb" data-t="md">
+## 3 · Distance to affinity
+Euclidean distance across all 19 axes for every pair of cuisines, then a Gaussian falloff to a 0–100 affinity (100 = an identical palate).
+> **Why Euclidean + Gaussian?** Straight-line distance is a fair overall difference; the Gaussian turns it into a smooth, intuitive 0–100.
+</script>
+<script type="text/x-nb" data-t="code">
+D = np.sqrt(((X[:, None, :] - X[None, :, :]) ** 2).sum(-1))
+sigma = D[np.triu_indices(len(X), 1)].mean()
+A = 100 * np.exp(-(D ** 2) / (2 * sigma ** 2))
+aff = pd.DataFrame(A, index=df.index, columns=df.index).round().astype(int)
+
+# nearest palates to Thailand:
+aff['Thailand'].drop('Thailand').sort_values(ascending=False).head(5)
+</script>
+<script type="text/x-nb" data-t="md">
+## 4 · Taste regions (k-means)
+Let the data group the cuisines into six families — nothing is assigned by hand.
+> **Why k-means (k=6)?** Fast, gives clean non-overlapping groups; six keeps the story readable.
+> scikit-learn may number the clusters differently from the website; the groupings are what matter.
+</script>
+<script type="text/x-nb" data-t="code">
+km = KMeans(n_clusters=6, n_init=10, random_state=42).fit(X)
+df['cluster'] = km.labels_
+for c in range(6):
+    print(f"Cluster {c}:", ', '.join(df.index[df.cluster == c]))
+</script>
+<script type="text/x-nb" data-t="md">
+## 5 · Flatten to 2-D
+Project the 19-D palate space down to two axes so we can see it. On standardized data, PCA gives the same embedding as classical MDS on the Euclidean distances.
+> **Why PCA?** Deterministic and keeps the most variance — the clearest honest 2-D view.
+</script>
+<script type="text/x-nb" data-t="code">
+emb = PCA(n_components=2).fit_transform(X)
+fig = px.scatter(x=emb[:, 0], y=emb[:, 1], text=df.index,
+                 color=df.cluster.astype(str), template='plotly_dark')
+fig.update_traces(textposition='top center').update_layout(showlegend=False)
+fig.show()
+</script>
+<script type="text/x-nb" data-t="md">
+## 6 · The heatmap map
+Colour every country by its affinity to a chosen reference cuisine.
+> **Why a map?** Geography makes affinity instant to read — a cuisine's neighbours light up.
+</script>
+<script type="text/x-nb" data-t="code">
+ref = 'Thailand'
+spice = [[0,'#20262D'],[0.42,'#7C6B2E'],[0.62,'#C79A34'],[0.80,'#E0722A'],[1,'#B23018']]
+m = px.choropleth(locations=df.index, locationmode='country names',
+                  color=aff[ref], color_continuous_scale=spice, range_color=(0, 100))
+m.update_layout(template='plotly_dark', title=f"Culinary affinity to {ref}",
+                geo=dict(projection_type='natural earth'))
+m.show()
+</script>
+<script type="text/x-nb" data-t="md">
+## 7 · Every pair at once
+The full affinity matrix, ordered by cluster — the bright blocks are the taste regions.
+> **Why a matrix?** One glance shows all 780 pairwise relationships at once.
+</script>
+<script type="text/x-nb" data-t="code">
+order = df.sort_values('cluster').index
+px.imshow(aff.loc[order, order], color_continuous_scale=spice,
+          zmin=0, zmax=100, template='plotly_dark').show()
+</script>
+<script type="text/x-nb" data-t="md">
+---
+### A caveat worth tasting
+A national label flattens huge regional variety into one point — "India" or "China" could each be several rows. Read this as a conversation starter about how palates relate, not a verdict. Everything is reproducible: change a score and rerun.
+</script>
+  </div><!-- /tab-notebook -->
 </div>
 
 <script>
@@ -865,14 +1055,69 @@ function closeThemeMenu(){thememenu.classList.remove("open");themebtn.setAttribu
 themebtn.addEventListener("click",e=>{e.stopPropagation();const o=thememenu.classList.toggle("open");themebtn.setAttribute("aria-expanded",o);});
 document.addEventListener("click",e=>{if(!thememenu.contains(e.target)&&e.target!==themebtn&&!themebtn.contains(e.target))closeThemeMenu();});
 
+/* ===================== NOTEBOOK ===================== */
+const NB=[...document.querySelectorAll('#tab-notebook script[type="text/x-nb"]')]
+  .map(el=>({t:el.dataset.t, s:el.textContent.replace(/^\n/,"").replace(/\s+$/,"")}));
+function nbEsc(x){return x.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function pyHi(code){
+  code=nbEsc(code);
+  const rx=/(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+\.?\d*\b)|(\b(?:import|from|as|for|in|def|return|print|if|elif|else|lambda|and|or|not|None|True|False|class|with|while)\b)/g;
+  return code.replace(rx,(m,c,s,nu,k)=>c?`<span class="c">${c}</span>`:s?`<span class="s">${s}</span>`:nu?`<span class="nu">${nu}</span>`:`<span class="k">${k}</span>`);
+}
+function mdToHtml(md){
+  const esc2=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const inl=t=>esc2(t).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  let out="",list=false; const closeL=()=>{if(list){out+="</ul>";list=false;}};
+  md.split("\n").forEach(raw=>{
+    const line=raw.replace(/\s+$/,"");
+    if(!line.trim()){closeL();return;}
+    if(line.startsWith("### ")){closeL();out+="<h3>"+inl(line.slice(4))+"</h3>";}
+    else if(line.startsWith("## ")){closeL();out+="<h2>"+inl(line.slice(3))+"</h2>";}
+    else if(line.startsWith("# ")){closeL();out+="<h2>"+inl(line.slice(2))+"</h2>";}
+    else if(line.trim()==="---"){closeL();out+="<hr>";}
+    else if(line.startsWith("> ")){closeL();out+="<blockquote>"+inl(line.slice(2))+"</blockquote>";}
+    else if(line.startsWith("- ")){if(!list){out+="<ul>";list=true;}out+="<li>"+inl(line.slice(2))+"</li>";}
+    else {closeL();out+="<p>"+inl(line)+"</p>";}
+  });
+  closeL(); return out;
+}
+function renderNotebook(){
+  let n=0;
+  document.getElementById("nbcells").innerHTML=NB.map(c=>{
+    if(c.t==="md")return `<div class="nb-md">${mdToHtml(c.s)}</div>`;
+    n++;
+    return `<div class="nb-code"><div class="nb-prompt">In [${n}]:</div><pre>${pyHi(c.s)}</pre></div>`;
+  }).join("");
+}
+function buildIpynb(){
+  const cells=NB.map(c=>{
+    const lines=c.s.split("\n");
+    const src=lines.map((l,i)=>i<lines.length-1?l+"\n":l);
+    return c.t==="md"
+      ? {cell_type:"markdown",metadata:{},source:src}
+      : {cell_type:"code",execution_count:null,metadata:{},outputs:[],source:src};
+  });
+  return {cells,metadata:{kernelspec:{display_name:"Python 3",language:"python",name:"python3"},
+    language_info:{name:"python"}},nbformat:4,nbformat_minor:5};
+}
+function downloadIpynb(){
+  const blob=new Blob([JSON.stringify(buildIpynb(),null,1)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="taste-atlas.ipynb";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
 /* ===================== INIT ===================== */
 buildThemeMenu();
 setThemeTokens(loadTheme()||"saffron");
 buildSelect();
 drawClusters();
 buildDataTable();buildDishGrid();buildDishLegend();
+renderNotebook();
 selectDish(dishSel);
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>showTab(t.dataset.tab)));
+{const dl=document.getElementById("dlipynb");if(dl)dl.addEventListener("click",downloadIpynb);}
 
 /* wait for the chart library, then draw everything that needs it */
 (function boot(tries){
