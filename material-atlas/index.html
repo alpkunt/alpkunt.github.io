@@ -1,1 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Material Atlas — Engineering Cartography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js" charset="utf-8"
+  onerror="(function(){var s=document.createElement('script');s.src='https://cdn.plot.ly/plotly-2.35.2.min.js';document.head.appendChild(s);})()"></script>
+<style>
+  :root{
+    --ink:#12161B; --panel:#1A2027; --panel2:#20272F; --line:#2C353F;
+    --paper:#ECE3D0; --muted:#8A94A0; --muted2:#657080;
+    --saffron:#F3C34C; --amber:#E68A2E; --paprika:#CE5A2A; --chili:#B23018; --sage:#8FA96E;
+    --h0:#20262D; --h1:#3E4A44; --h2:#8C7A34; --h3:#D69A2E; --h4:#E0722A; --h5:#B23018;
+    --bar:rgba(18,22,27,.85); --onacc:#12161B;
+  }
+  html{transition:background .3s ease}
+  body,.card,.topbar,.tabs,.proj,.dish-card,.cl-card{transition:background .3s ease,border-color .3s ease,color .3s ease}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);
+    font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{background:
+    radial-gradient(1200px 700px at 78% -8%, rgba(243,195,76,.06), transparent 60%),
+    radial-gradient(900px 600px at 10% 4%, rgba(178,48,24,.05), transparent 55%),
+    var(--ink);}
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
 
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:18px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:var(--bar);backdrop-filter:blur(8px);z-index:20}
+  .mark{font-family:"Fraunces",serif;font-weight:600;font-size:19px;letter-spacing:.2px;display:flex;align-items:center;gap:10px}
+  .mark .dot{width:11px;height:11px;border-radius:50%;
+    background:conic-gradient(from 210deg,var(--h5),var(--h4),var(--h3),var(--saffron),var(--h5));
+    box-shadow:0 0 0 3px rgba(243,195,76,.12)}
+  .chip{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:5px 11px;letter-spacing:.4px}
+  .byline{display:flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;
+    font-size:12px;color:var(--muted);letter-spacing:.3px}
+  .byline b{color:var(--paper);font-weight:500}
+  .chaticon{display:inline-block;vertical-align:middle;transform:translateY(1px)}
+  .chaticon .bub{fill:var(--saffron)}
+  /* theme switcher */
+  .themebar{position:relative}
+  .themebtn{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);
+    color:var(--paper);border-radius:999px;padding:6px 12px 6px 8px;cursor:pointer;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.3px}
+  .themebtn:hover{border-color:var(--amber)}
+  .sw{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.18);flex:none}
+  .thememenu{position:absolute;right:0;top:calc(100% + 8px);background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:6px;min-width:196px;display:none;flex-direction:column;gap:2px;z-index:40;
+    box-shadow:0 20px 54px -22px rgba(0,0,0,.6)}
+  .thememenu.open{display:flex}
+  .titem{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--paper);
+    padding:9px 10px;border-radius:10px;cursor:pointer;font-family:"Inter",sans-serif;font-size:13.5px;text-align:left;width:100%}
+  .titem:hover,.titem.on{background:var(--panel2)}
+  .titem .mode{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.5px}
+  @media(max-width:780px){.topbar .chip{display:none}}
+  @media(max-width:480px){.byline{font-size:11px;gap:5px}.byline .aiw{display:none}}
+
+  /* hero */
+  .hero{padding:56px 0 26px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:3.5px;
+    color:var(--amber);text-transform:uppercase;margin-bottom:18px}
+  h1{font-family:"Fraunces",serif;font-weight:500;line-height:1.02;margin:0;
+    font-size:clamp(38px,6.4vw,74px);letter-spacing:-.5px}
+  h1 em{font-style:italic;color:var(--saffron)}
+  .lede{max-width:640px;margin:20px 0 0;color:var(--muted);font-size:17px;line-height:1.6}
+  .stats{display:flex;gap:28px;flex-wrap:wrap;margin-top:26px}
+  .stat b{font-family:"IBM Plex Mono",monospace;font-size:22px;color:var(--paper);display:block;font-weight:500}
+  .stat span{font-size:12px;color:var(--muted);letter-spacing:.4px}
+
+  /* controls */
+  .controls{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;
+    margin:34px 0 14px;padding:18px 20px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .ctl-label{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:1.4px;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  select{appearance:none;background:var(--panel2);color:var(--paper);border:1px solid var(--line);
+    border-radius:10px;padding:11px 38px 11px 14px;font-family:"Inter";font-size:15px;min-width:230px;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%238A94A0' stroke-width='1.5' fill='none'/></svg>");
+    background-repeat:no-repeat;background-position:right 14px center}
+  select:focus-visible,button:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+  .hint{color:var(--muted2);font-size:13px;padding-bottom:11px}
+  .hint b{color:var(--amber);font-weight:500}
+
+  /* section scaffolding */
+  section{padding:26px 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:6px 0 18px}
+  .sec-head h2{font-family:"Fraunces",serif;font-weight:500;font-size:26px;margin:0;letter-spacing:-.2px}
+  .sec-head .n{font-family:"IBM Plex Mono",monospace;color:var(--amber);font-size:13px}
+  .sec-head p{margin:0;color:var(--muted);font-size:14px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .plot{width:100%}
+
+  /* map block */
+  #map{height:520px}
+  @media(max-width:640px){
+    #map{height:460px}
+    .controls{flex-direction:column;align-items:stretch}
+    .controls select{width:100%;min-width:0;font-size:16px;padding:13px 40px 13px 14px}
+    .controls .hint{padding-bottom:0}
+  }
+
+  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+
+  /* ranked bars */
+  .ranktitle{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .ranktitle .who{font-family:"Fraunces",serif;font-size:20px}
+  .ranktitle .who b{color:var(--saffron);font-weight:500}
+  .bars{display:flex;flex-direction:column;gap:9px}
+  .bar-row{display:grid;grid-template-columns:118px 1fr 42px;align-items:center;gap:12px;cursor:pointer}
+  .bar-row .nm{font-size:13.5px;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-row .track{height:16px;background:var(--panel2);border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.03)}
+  .bar-row .fill{height:100%;border-radius:6px;
+    background:linear-gradient(90deg,#5a4a1e,var(--h3),var(--h4),var(--chili))}
+  .bar-row .sc{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);text-align:right}
+  .bar-row:hover .nm{color:var(--saffron)}
+  .distant{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);
+    font-size:13px;color:var(--muted)}
+  .distant b{color:var(--paper);font-weight:500}
+  #radar{height:380px}
+
+  /* clusters */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:820px){.grid3{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid3{grid-template-columns:1fr}}
+  .cl-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;position:relative;overflow:hidden}
+  .cl-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)}
+  .cl-name{font-family:"Fraunces",serif;font-size:18px;margin:2px 0 3px}
+  .cl-reps{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+  .cl-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.3px;
+    padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--paper);background:var(--panel2)}
+  .cl-mem{font-size:12px;color:var(--muted2);line-height:1.5}
+  .cl-size{position:absolute;right:14px;top:12px;font-family:"IBM Plex Mono",monospace;
+    font-size:11px;color:var(--muted)}
+
+  #mds{height:520px}
+  #matrix{height:640px}
+  @media(max-width:640px){#matrix{height:480px}}
+
+  /* legend for embedding */
+  .leg{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+  .leg span{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+  .leg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  footer{border-top:1px solid var(--line);margin-top:30px;padding:30px 0 60px;color:var(--muted);font-size:13.5px;line-height:1.7}
+  footer b{color:var(--paper);font-weight:500}
+  .copyright{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.2px;color:var(--muted2)}
+  .method{max-width:760px}
+  ::selection{background:rgba(243,195,76,.28)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* tabs */
+  .tabs{position:sticky;top:56px;z-index:15;display:flex;flex-wrap:wrap;gap:6px;padding:10px 22px;
+    background:var(--bar);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .tab{font-family:"IBM Plex Mono",monospace;font-size:12.5px;letter-spacing:.4px;color:var(--muted);
+    background:none;border:1px solid transparent;border-radius:999px;padding:8px 16px;cursor:pointer;
+    transition:color .15s,background .15s}
+  .tab:hover{color:var(--paper)}
+  .tab.on{color:var(--onacc);background:var(--saffron);font-weight:500}
+  .tabpane[hidden]{display:none}
+
+  /* method + data table */
+  .method-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:6px 0 30px}
+  @media(max-width:820px){.method-grid{grid-template-columns:1fr}}
+  ol.steps{counter-reset:s;list-style:none;margin:6px 0 0;padding:0}
+  ol.steps li{counter-increment:s;position:relative;padding:9px 0 9px 42px;
+    border-bottom:1px solid var(--line);font-size:14px;color:var(--paper)}
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:9px;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--amber)}
+  ol.steps li b{font-family:"Fraunces",serif;font-weight:500;color:var(--paper)}
+  .prose{font-size:14px;line-height:1.65;color:var(--muted);margin:6px 0 0}
+  .prose b{color:var(--paper);font-weight:500}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  table.data{border-collapse:collapse;width:100%;font-size:12px}
+  table.data th,table.data td{padding:6px 7px;text-align:center;white-space:nowrap}
+  table.data thead th{position:sticky;top:0;background:var(--panel2);color:var(--muted);
+    font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:10.5px;letter-spacing:.3px;
+    border-bottom:1px solid var(--line)}
+  table.data thead th:first-child{left:0;z-index:3;text-align:left}
+  table.data td.name{text-align:left;font-weight:500;color:var(--paper);position:sticky;left:0;
+    background:var(--panel);z-index:1}
+  table.data td.reg{text-align:left;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px}
+  table.data td.v{font-family:"IBM Plex Mono",monospace}
+  table.data tbody tr:hover td{outline:1px solid rgba(243,195,76,.22)}
+  .scalekey{display:flex;align-items:center;gap:9px;margin:14px 2px 0;font-size:12px;color:var(--muted);
+    font-family:"IBM Plex Mono",monospace}
+  .scalekey .grad{height:10px;width:180px;border-radius:5px;
+    background:linear-gradient(90deg,#232a31,#8C7A34,#B23018)}
+
+  /* flagship uses */
+  .plate{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;min-height:460px;gap:2px}
+  .plate-emoji{font-size:78px;line-height:1;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
+  .plate-country{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:2px;
+    text-transform:uppercase;color:var(--amber);margin-top:16px}
+  .plate-dish{font-family:"Fraunces",serif;font-size:30px;color:var(--paper);line-height:1.12;margin-top:2px}
+  .plate-desc{color:var(--muted);font-size:14.5px;max-width:350px;line-height:1.55;margin-top:6px}
+  .plate-tag{margin-top:14px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#17120E;
+    padding:5px 12px;border-radius:999px;font-weight:500}
+  .plate-tag:empty{display:none}
+  @media(max-width:900px){.plate{min-height:auto;padding:34px 18px}}
+
+  .dish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:900px){.dish-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:620px){.dish-grid{grid-template-columns:repeat(2,1fr)}}
+  .dish-card{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+    background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px 14px;cursor:pointer;
+    color:var(--paper);font-family:inherit;transition:border-color .15s,transform .12s,background .15s}
+  .dish-card:hover{border-color:var(--amber);transform:translateY(-2px)}
+  .dish-card.on{border-color:var(--saffron);background:var(--panel2);box-shadow:0 0 0 1px var(--saffron) inset}
+  .dish-card .de{font-size:30px;line-height:1;margin-bottom:5px}
+  .dish-card .dc{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.4px;
+    color:var(--muted);text-transform:uppercase}
+  .dish-card .dn{font-family:"Fraunces",serif;font-size:16px;color:var(--paper);line-height:1.15}
+  .dish-card .dd{font-size:12px;color:var(--muted);line-height:1.45;margin-top:3px}
+  .loaderr{display:flex;align-items:center;justify-content:center;height:100%;min-height:180px;
+    padding:24px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+  /* notebook */
+  .nb-actions{display:flex;gap:12px;align-items:center;margin:2px 0 22px;flex-wrap:wrap}
+  .dlbtn{display:inline-flex;align-items:center;gap:8px;background:var(--saffron);color:var(--onacc);
+    border:0;border-radius:10px;padding:11px 16px;font-family:"IBM Plex Mono",monospace;font-size:13px;
+    font-weight:500;cursor:pointer;letter-spacing:.3px}
+  .dlbtn:hover{filter:brightness(1.06)}
+  .nb-note{color:var(--muted);font-size:12.5px}
+  .nb-md{color:var(--paper);font-size:14.5px;line-height:1.62;margin:16px 2px}
+  .nb-md h2{font-family:"Fraunces",serif;font-weight:500;font-size:23px;margin:8px 0 4px}
+  .nb-md h3{font-family:"Fraunces",serif;font-weight:500;font-size:18px;margin:4px 0}
+  .nb-md p{margin:6px 0;color:var(--muted)}
+  .nb-md strong{color:var(--paper);font-weight:600}
+  .nb-md code{background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;
+    font-family:"IBM Plex Mono",monospace;font-size:.88em;color:var(--paper)}
+  .nb-md blockquote{border-left:3px solid var(--amber);margin:8px 0;padding:3px 0 3px 14px;
+    color:var(--muted);font-size:13.5px}
+  .nb-md hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+  .nb-code{display:grid;grid-template-columns:58px 1fr;margin:10px 0;border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;background:var(--panel)}
+  .nb-prompt{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted2);padding:13px 8px;
+    text-align:right;background:var(--panel2);border-right:1px solid var(--line);user-select:none}
+  .nb-code pre{margin:0;padding:13px 15px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px;line-height:1.55;color:var(--paper);white-space:pre;tab-size:4}
+  .nb-code .k{color:var(--amber)}
+  .nb-code .s{color:var(--sage)}
+  .nb-code .c{color:var(--muted2);font-style:italic}
+  .nb-code .nu{color:var(--paprika)}
+  #ashby{height:520px}
+  #appchart{height:460px}
+  @media(max-width:640px){#ashby{height:440px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mark"><span class="dot"></span>The Material Atlas</div>
+  <div class="byline">by <b>A.&nbsp;Alper&nbsp;Kunt</b>
+    <svg class="chaticon" width="19" height="19" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="bub" d="M5 3h14a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-5.5l-4.8 3.8A.7.7 0 0 1 7.5 22V19H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/>
+      <circle cx="9.3" cy="9.6" r="1.25" fill="#12161B"/>
+      <circle cx="14.7" cy="9.6" r="1.25" fill="#12161B"/>
+      <path d="M9 12.4c1.6 1.7 4.4 1.7 6 0" fill="none" stroke="#12161B" stroke-width="1.4" stroke-linecap="round"/>
+    </svg>
+    <span class="aiw">with AI</span></div>
+  <div class="themebar">
+    <button class="themebtn" id="themebtn" aria-haspopup="true" aria-expanded="false">
+      <span class="sw" id="themesw"></span><span class="tlbl">Theme</span>
+    </button>
+    <div class="thememenu" id="thememenu" role="menu"></div>
+  </div>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button class="tab on" data-tab="tab-atlas" role="tab">Atlas</button>
+  <button class="tab" data-tab="tab-method" role="tab">Method &amp; Data</button>
+  <button class="tab" data-tab="tab-dishes" role="tab">Flagship Uses</button>
+  <button class="tab" data-tab="tab-notebook" role="tab">Notebook</button>
+</nav>
+
+<div class="wrap">
+  <div class="tabpane" id="tab-atlas">
+  <header class="hero">
+    <div class="eyebrow">Engineering Cartography · A personal materials atlas</div>
+    <h1>Every material has a place <em>in property space</em>.</h1>
+    <p class="lede">Wood, steel, glass, rubber — engineers place them on Ashby charts, plotting one property against another to see which materials really behave alike. This atlas scores forty everyday materials on twelve measured properties, then measures how close any two truly sit. Pick a material — the chart re-colours to show its nearest engineering kin.</p>
+    <div class="stats">
+      <div class="stat"><b>40</b><span>ENGINEERING MATERIALS</span></div>
+      <div class="stat"><b>12</b><span>MEASURED PROPERTY AXES</span></div>
+      <div class="stat"><b>780</b><span>PAIRWISE AFFINITIES</span></div>
+      <div class="stat"><b>6</b><span>EMERGENT MATERIAL FAMILIES</span></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div>
+      <div class="ctl-label">Reference material</div>
+      <select id="ref" aria-label="Choose a reference material"></select>
+    </div>
+    <div>
+      <div class="ctl-label">Ashby X-axis</div>
+      <select id="xAx" aria-label="X-axis property"></select>
+    </div>
+    <div>
+      <div class="ctl-label">Ashby Y-axis</div>
+      <select id="yAx" aria-label="Y-axis property"></select>
+    </div>
+    <div class="hint">This is an <b>Ashby chart</b> — every material sits at its real measured properties (axes are log-scaled where they span orders of magnitude). Bubbles are tinted by <b>affinity</b> to your reference; deeper colour means a closer material. Pick one above, tap a name in the list, or <b>click a bubble</b>. Swap the axes to explore different trade-offs.</div>
+  </div>
+
+  <section style="padding-top:6px">
+    <div class="card"><div id="ashby" class="plot"></div></div>
+  </section>
+
+  <section>
+    <div class="grid2">
+      <div class="card">
+        <div class="ranktitle">
+          <div class="who">Closest to <b id="whoName">—</b></div>
+          <div class="chip">affinity 0–100</div>
+        </div>
+        <div class="bars" id="bars"></div>
+        <div class="distant" id="distant"></div>
+      </div>
+      <div class="card">
+        <div class="ranktitle"><div class="who">Property fingerprint</div></div>
+        <div id="radar" class="plot"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="n">01</span>
+      <h2>Six material families the data drew by itself</h2>
+    </div>
+    <p style="margin:-6px 0 18px;color:var(--muted);font-size:14px;max-width:720px">
+      No families were assigned by hand. A k‑means clustering on the property scores grouped the forty materials into six families — each named for what its centroid leans hardest on. Reassuringly, they line up with the textbook classes: metals, ceramics, polymers, composites.</p>
+    <div class="grid3" id="clusters"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="n">02</span>
+      <h2>The property space, flattened</h2>
+      <p>Multidimensional scaling · closer dots behave more alike</p>
+    </div>
+    <div class="card"><div id="mds" class="plot"></div>
+      <div class="leg" id="mdsleg"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="n">03</span>
+      <h2>Every pair, at once</h2>
+      <p>Affinity matrix, ordered by family — bright blocks are the families</p>
+    </div>
+    <div class="card"><div id="matrix" class="plot"></div></div>
+  </section>
+
+  <footer>
+    <div class="method">
+      <b>How to read this.</b> Each material carries twelve measured properties — density, Young's modulus, tensile strength, hardness, thermal and electrical conductivity, melting point, thermal expansion, specific heat, fracture toughness, ductility and rough cost. Properties that span many orders of magnitude are log‑transformed, then every axis is standardized so none dominates. Affinity between two materials is a Gaussian function of their distance across all axes (100 = identical property profile). Families come from k‑means; the flattened map from multidimensional scaling.
+      <br><br>
+      <b>A caveat worth measuring.</b> These are representative handbook values, not a single certified specimen. Real materials vary with alloy, temper, grade and processing — "steel" or "aluminium" spans a whole family of its own. Read the numbers as typical and comparative rather than exact. Everything downstream is plain, reproducible math on the table below.
+    </div>
+    <div class="copyright">© 2026 Ahmet Alper Kunt · A personal, non‑commercial materials atlas — free to explore, use and share. Made with AI.</div>
+  </footer>
+  </div><!-- /tab-atlas -->
+
+  <div class="tabpane" id="tab-method" hidden>
+    <header class="hero" style="padding:46px 0 6px">
+      <div class="eyebrow">Method &amp; Data</div>
+      <h1 style="font-size:clamp(32px,5vw,56px)">The maths behind <em>the map</em>.</h1>
+      <p class="lede">Real, tabulated engineering properties — then some plain math on top. Here's exactly how the atlas is built, and the numbers it runs on.</p>
+    </header>
+
+    <div class="method-grid">
+      <div class="card">
+        <div class="ranktitle"><div class="who">How it was built</div></div>
+        <ol class="steps">
+          <li><b>Measure</b> — each material carries 12 real properties (the table below).</li>
+          <li><b>Log &amp; standardize</b> — log wide-ranging axes, then z‑score every axis.</li>
+          <li><b>Distance</b> — Euclidean distance across all 780 material pairs.</li>
+          <li><b>Affinity</b> — distance mapped to 0–100 by a Gaussian falloff.</li>
+          <li><b>Cluster</b> — k‑means (k = 6) groups the similar materials.</li>
+          <li><b>Flatten</b> — classical MDS drops 12‑D down to the 2‑D property map.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <div class="ranktitle"><div class="who">Sources &amp; honesty</div></div>
+        <p class="prose">
+          Unlike a taste chart, these numbers are <b>real measured quantities</b> — representative handbook values for density, stiffness, strength, conductivity and the rest. They still carry uncertainty: a property like strength or cost swings widely with grade, temper and market.
+          <br><br>
+          A single label also flattens a whole sub-family — <b>“steel”</b> alone spans mild to tool grades. So read every value as <b>typical and comparative</b>, not a certified spec. Everything downstream is <b>plain, reproducible math</b> on exactly the table below: change a number and the whole atlas re‑draws.
+        </p>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <span class="n">04</span>
+      <h2>The full property table</h2>
+      <p>40 materials × 12 measured axes · deeper colour = more of that property (log-scaled per axis)</p>
+    </div>
+    <div class="tbl-wrap"><table class="data" id="dataTable"></table></div>
+    <div class="scalekey"><span>low</span><i class="grad"></i><span>high</span><span style="margin-left:6px">per-axis, log-scaled</span></div>
+  </div><!-- /tab-method -->
+
+  <div class="tabpane" id="tab-dishes" hidden>
+    <header class="hero" style="padding:46px 0 6px">
+      <div class="eyebrow">Flagship Uses</div>
+      <h1 style="font-size:clamp(32px,5vw,56px)">One job <em>per material</em>.</h1>
+      <p class="lede">The application each material is best known for — the reason engineers reach for it. Points are tinted by their material family from the atlas; click any one to see its flagship use, or browse the full set below.</p>
+    </header>
+
+    <div class="grid2">
+      <div class="card">
+        <div id="appchart" class="plot"></div>
+        <div class="leg" id="dishleg"></div>
+      </div>
+      <div class="card plate" id="plate">
+        <div class="plate-emoji">🧩</div>
+        <div class="plate-country">—</div>
+        <div class="plate-dish">Pick a material</div>
+        <div class="plate-desc">Click the chart, or a card below.</div>
+        <div class="plate-tag"></div>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <span class="n">05</span>
+      <h2>The full set</h2>
+      <p>40 materials · 40 flagship uses</p>
+    </div>
+    <div class="dish-grid" id="dishgrid"></div>
+  </div><!-- /tab-dishes -->
+
+  <div class="tabpane" id="tab-notebook" hidden>
+    <header class="hero" style="padding:46px 0 6px">
+      <div class="eyebrow">Reproducible steps</div>
+      <h1 style="font-size:clamp(32px,5vw,56px)">The <em>notebook</em>.</h1>
+      <p class="lede">Every step behind the atlas, as a Python notebook you can read here — or download and run yourself in Jupyter Lab. Same pipeline: measure, log &amp; standardize, distance, cluster, map.</p>
+    </header>
+    <div class="nb-actions">
+      <button class="dlbtn" id="dlipynb">⬇&nbsp; Download .ipynb</button>
+      <span class="nb-note">Needs Python with numpy · pandas · scikit-learn · plotly</span>
+    </div>
+    <div id="nbcells"></div>
+
+<script type="text/x-nb" data-t="md">
+# The Material Atlas — reproducible notebook
+This rebuilds the whole analysis: scoring materials on 12 measured properties, log-scaling and standardizing them, measuring how alike they behave, clustering them into families, and drawing the Ashby chart. Run the cells top to bottom.
+> Values are representative handbook figures — real materials vary with grade, temper and processing, so read them as typical and comparative.
+</script>
+<script type="text/x-nb" data-t="code">
+# install once if needed:
+# %pip install numpy pandas scikit-learn plotly
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+import plotly.express as px
+</script>
+<script type="text/x-nb" data-t="md">
+## 1 · The data — 40 materials, 12 properties
+Units: density g/cm³, modulus GPa, strength MPa, hardness HV, thermal cond. W/m·K, electrical cond. S/m, melting point °C, thermal expansion ×10⁻⁶/K, specific heat J/kg·K, fracture toughness MPa·√m, elongation %, cost $/kg.
+</script>
+<script type="text/x-nb" data-t="code">
+AX = ['density','modulus','strength','hardness','thermCond','elecCond',
+      'meltPt','thermExp','specHeat','toughness','elong','cost']
+
+rows = [
+    ("Mild Steel","Ferrous metal",[7.87,210,420,130,52,6000000,1515,12,486,100,25,0.8]),
+    ("Stainless 304","Ferrous metal",[8,193,585,200,16,1400000,1450,17,500,120,55,3.5]),
+    ("Cast Iron","Ferrous metal",[7.15,110,250,220,50,1000000,1200,11,460,12,0.6,0.6]),
+    ("Tool Steel","Ferrous metal",[7.85,210,1200,700,30,4000000,1420,11,460,40,8,6]),
+    ("Aluminum 6061","Light metal",[2.7,69,310,107,167,25000000,660,23,896,29,12,2.5]),
+    ("Ti-6Al-4V","Light metal",[4.43,114,950,340,6.7,580000,1660,8.6,526,75,14,30]),
+    ("Magnesium AZ31","Light metal",[1.77,45,260,73,96,23000000,650,26,1020,20,15,4]),
+    ("Titanium (pure)","Light metal",[4.51,116,340,160,22,2400000,1668,8.6,523,55,30,25]),
+    ("Copper","Conductive metal",[8.96,117,210,50,401,59600000,1085,16.5,385,60,45,9]),
+    ("Silver","Conductive metal",[10.49,83,170,25,429,63000000,962,18,235,40,45,800]),
+    ("Gold","Conductive metal",[19.3,79,120,25,318,41000000,1064,14,129,40,45,62000]),
+    ("Nickel","Conductive metal",[8.9,200,460,90,90,14300000,1455,13,444,100,40,15]),
+    ("Zinc","Conductive metal",[7.14,108,110,40,116,16600000,420,30,388,15,20,3]),
+    ("Brass","Conductive metal",[8.5,110,340,120,120,16000000,930,20,380,40,40,6]),
+    ("Bronze","Conductive metal",[8.8,110,400,130,60,7400000,950,18,380,35,30,8]),
+    ("Lead","Heavy metal",[11.34,16,18,5,35,4800000,327,29,129,20,50,2.2]),
+    ("Tungsten","Refractory metal",[19.25,411,980,350,173,18000000,3422,4.5,134,20,2,35]),
+    ("HDPE","Polymer",[0.95,1.1,30,5,0.48,1e-13,130,120,1900,3,500,1.5]),
+    ("Polypropylene","Polymer",[0.905,1.5,35,8,0.17,1e-15,165,100,1920,3.5,400,1.4]),
+    ("PVC","Polymer",[1.4,3,52,15,0.19,1e-13,100,80,900,3,30,1.3]),
+    ("PET","Polymer",[1.38,3,60,20,0.24,1e-15,260,70,1200,4,70,1.6]),
+    ("Nylon 6,6","Polymer",[1.14,3,80,15,0.25,1e-12,265,90,1670,3.5,60,3]),
+    ("Polycarbonate","Polymer",[1.2,2.4,65,18,0.2,1e-14,150,65,1200,4,110,4]),
+    ("PMMA (Acrylic)","Polymer",[1.18,3,70,20,0.19,1e-15,160,70,1450,1.5,5,3]),
+    ("PTFE","Polymer",[2.2,0.5,25,5,0.25,1e-16,327,130,1000,3,300,12]),
+    ("Epoxy","Polymer",[1.15,3.5,60,25,0.2,1e-13,150,60,1000,0.6,4,5]),
+    ("Natural Rubber","Elastomer",[0.93,0.02,25,3,0.15,1e-13,180,220,1900,0.1,600,2]),
+    ("Silicone Rubber","Elastomer",[1.2,0.01,8,2,0.2,1e-12,250,250,1300,0.1,400,8]),
+    ("Alumina","Ceramic",[3.95,370,300,1800,30,1e-10,2072,8,880,4,0.1,20]),
+    ("Silicon Carbide","Ceramic",[3.21,410,400,2800,120,10,2730,4,750,4,0.1,30]),
+    ("Zirconia","Ceramic",[6,210,900,1200,2,1e-08,2715,10,400,10,0.1,40]),
+    ("Silicon Nitride","Ceramic",[3.2,310,700,1600,30,1e-11,1900,3.3,700,6,0.1,45]),
+    ("Tungsten Carbide","Ceramic",[15.6,600,500,2400,85,1000000,2870,5,200,12,0.1,40]),
+    ("Silicon","Ceramic",[2.33,130,120,1000,150,1000,1414,3,700,0.9,0.1,15]),
+    ("Soda-lime Glass","Glass/mineral",[2.5,70,50,550,1,1e-11,700,9,840,0.7,0.1,1.5]),
+    ("Concrete","Glass/mineral",[2.4,30,4,100,1.5,1e-05,1000,12,880,0.4,0.1,0.1]),
+    ("Brick","Glass/mineral",[1.9,15,5,50,0.7,1e-11,1200,6,840,0.5,0.1,0.4]),
+    ("CFRP","Composite",[1.6,150,1500,40,5,10000,200,2,800,20,1.5,40]),
+    ("GFRP","Composite",[2,40,1000,30,0.5,1e-12,200,10,1000,15,2.5,8]),
+    ("Oak Wood","Natural",[0.75,12,100,4,0.17,1e-13,300,5,1700,5,2,1.2])
+]
+
+df = pd.DataFrame([r[2] for r in rows], columns=AX, index=[r[0] for r in rows])
+df.insert(0, 'family', [r[1] for r in rows])
+df.head()
+</script>
+<script type="text/x-nb" data-t="md">
+## 2 · Log-scale, then standardize
+Several properties span many orders of magnitude — electrical conductivity alone runs from ~1e-16 (PTFE) to ~6e7 S/m (silver). Log those first so the spread is comparable, then z-score every axis so none dominates the distance.
+> **Why log?** On raw values a few giant axes would swamp the rest; logs put ratios on an even footing — exactly why Ashby charts use log axes.
+</script>
+<script type="text/x-nb" data-t="code">
+LOGV = ['modulus','strength','hardness','thermCond','elecCond','thermExp','toughness','cost']
+Xt = df[AX].copy()
+for a in LOGV:
+    Xt[a] = np.log10(Xt[a])
+Xt['elong'] = np.log10(df['elong'] + 1)     # +1 keeps the brittle zeros finite
+X = StandardScaler().fit_transform(Xt)
+</script>
+<script type="text/x-nb" data-t="md">
+## 3 · Distance to affinity
+Euclidean distance across all 12 standardized axes for every pair, then a Gaussian falloff to a 0–100 affinity (100 = an identical property profile).
+> **Why Euclidean + Gaussian?** Straight-line distance is a fair overall difference; the Gaussian turns it into a smooth, intuitive 0–100.
+</script>
+<script type="text/x-nb" data-t="code">
+D = np.sqrt(((X[:, None, :] - X[None, :, :]) ** 2).sum(-1))
+sigma = D[np.triu_indices(len(X), 1)].mean()
+A = 100 * np.exp(-(D ** 2) / (2 * sigma ** 2))
+aff = pd.DataFrame(A, index=df.index, columns=df.index).round().astype(int)
+
+# nearest materials to Copper:
+aff['Copper'].drop('Copper').sort_values(ascending=False).head(5)
+</script>
+<script type="text/x-nb" data-t="md">
+## 4 · Material families (k-means)
+Let the data group the materials into six families — nothing is assigned by hand. They should track the textbook classes.
+> **Why k-means (k=6)?** Fast, clean non-overlapping groups; six keeps the story readable.
+> scikit-learn may number the clusters differently from the website; the groupings are what matter.
+</script>
+<script type="text/x-nb" data-t="code">
+km = KMeans(n_clusters=6, n_init=10, random_state=42).fit(X)
+df['cluster'] = km.labels_
+for c in range(6):
+    print(f"Cluster {c}:", ', '.join(df.index[df.cluster == c]))
+</script>
+<script type="text/x-nb" data-t="md">
+## 5 · Flatten to 2-D
+Project the 12-D property space down to two axes so we can see it. On standardized data, PCA gives the same embedding as classical MDS on the Euclidean distances.
+> **Why PCA?** Deterministic and keeps the most variance — the clearest honest 2-D view.
+</script>
+<script type="text/x-nb" data-t="code">
+emb = PCA(n_components=2).fit_transform(X)
+fig = px.scatter(x=emb[:, 0], y=emb[:, 1], text=df.index,
+                 color=df.cluster.astype(str), template='plotly_dark')
+fig.update_traces(textposition='top center').update_layout(showlegend=False)
+fig.show()
+</script>
+<script type="text/x-nb" data-t="md">
+## 6 · The Ashby chart
+The engineer's native view: one property against another on log axes. Here density vs Young's modulus, coloured by family — the classic strength-of-materials map.
+> **Why an Ashby chart?** Two real properties on log axes make the trade-offs and the family bands jump out.
+</script>
+<script type="text/x-nb" data-t="code">
+fig = px.scatter(df, x='density', y='modulus', text=df.index,
+                 color=df.cluster.astype(str), log_y=True, template='plotly_dark',
+                 labels={'density':'Density (g/cm³)','modulus':"Young's modulus (GPa)"})
+fig.update_traces(textposition='top center').update_layout(showlegend=False)
+fig.show()
+</script>
+<script type="text/x-nb" data-t="md">
+## 7 · Every pair at once
+The full affinity matrix, ordered by cluster — the bright blocks are the families.
+> **Why a matrix?** One glance shows all 780 pairwise relationships at once.
+</script>
+<script type="text/x-nb" data-t="code">
+order = df.sort_values('cluster').index
+px.imshow(aff.loc[order, order], color_continuous_scale='inferno',
+          zmin=0, zmax=100, template='plotly_dark').show()
+</script>
+<script type="text/x-nb" data-t="md">
+---
+### A caveat worth measuring
+Handbook values flatten a whole sub-family into one row — "steel" spans mild to tool grades, "aluminium" a dozen alloys. Read this as a map of how materials relate, not a datasheet. Everything is reproducible: change a value and rerun.
+</script>
+  </div><!-- /tab-notebook -->
+</div>
+
+<script>
+/* ============================ DATA ============================ */
+const AX=["density","modulus","strength","hardness","thermCond","elecCond","meltPt","thermExp","specHeat","toughness","elong","cost"];
+const UNIT={density:"g/cm³",modulus:"GPa",strength:"MPa",hardness:"HV",thermCond:"W/m·K",elecCond:"S/m",meltPt:"°C",thermExp:"×10⁻⁶/K",specHeat:"J/kg·K",toughness:"MPa·√m",elong:"%",cost:"$/kg"};
+const AXLABEL={density:"density",modulus:"stiffness",strength:"strength",hardness:"hardness",thermCond:"thermal cond.",elecCond:"electrical cond.",meltPt:"melting point",thermExp:"thermal expansion",specHeat:"specific heat",toughness:"toughness",elong:"ductility",cost:"cost"};
+const LOG=new Set(["modulus","strength","hardness","thermCond","elecCond","thermExp","toughness","cost","elong"]);
+const D=[
+["Mild Steel","Ferrous metal",[7.87,210,420,130,52,6000000,1515,12,486,100,25,0.8]],
+["Stainless 304","Ferrous metal",[8,193,585,200,16,1400000,1450,17,500,120,55,3.5]],
+["Cast Iron","Ferrous metal",[7.15,110,250,220,50,1000000,1200,11,460,12,0.6,0.6]],
+["Tool Steel","Ferrous metal",[7.85,210,1200,700,30,4000000,1420,11,460,40,8,6]],
+["Aluminum 6061","Light metal",[2.7,69,310,107,167,25000000,660,23,896,29,12,2.5]],
+["Ti-6Al-4V","Light metal",[4.43,114,950,340,6.7,580000,1660,8.6,526,75,14,30]],
+["Magnesium AZ31","Light metal",[1.77,45,260,73,96,23000000,650,26,1020,20,15,4]],
+["Titanium (pure)","Light metal",[4.51,116,340,160,22,2400000,1668,8.6,523,55,30,25]],
+["Copper","Conductive metal",[8.96,117,210,50,401,59600000,1085,16.5,385,60,45,9]],
+["Silver","Conductive metal",[10.49,83,170,25,429,63000000,962,18,235,40,45,800]],
+["Gold","Conductive metal",[19.3,79,120,25,318,41000000,1064,14,129,40,45,62000]],
+["Nickel","Conductive metal",[8.9,200,460,90,90,14300000,1455,13,444,100,40,15]],
+["Zinc","Conductive metal",[7.14,108,110,40,116,16600000,420,30,388,15,20,3]],
+["Brass","Conductive metal",[8.5,110,340,120,120,16000000,930,20,380,40,40,6]],
+["Bronze","Conductive metal",[8.8,110,400,130,60,7400000,950,18,380,35,30,8]],
+["Lead","Heavy metal",[11.34,16,18,5,35,4800000,327,29,129,20,50,2.2]],
+["Tungsten","Refractory metal",[19.25,411,980,350,173,18000000,3422,4.5,134,20,2,35]],
+["HDPE","Polymer",[0.95,1.1,30,5,0.48,1e-13,130,120,1900,3,500,1.5]],
+["Polypropylene","Polymer",[0.905,1.5,35,8,0.17,1e-15,165,100,1920,3.5,400,1.4]],
+["PVC","Polymer",[1.4,3,52,15,0.19,1e-13,100,80,900,3,30,1.3]],
+["PET","Polymer",[1.38,3,60,20,0.24,1e-15,260,70,1200,4,70,1.6]],
+["Nylon 6,6","Polymer",[1.14,3,80,15,0.25,1e-12,265,90,1670,3.5,60,3]],
+["Polycarbonate","Polymer",[1.2,2.4,65,18,0.2,1e-14,150,65,1200,4,110,4]],
+["PMMA (Acrylic)","Polymer",[1.18,3,70,20,0.19,1e-15,160,70,1450,1.5,5,3]],
+["PTFE","Polymer",[2.2,0.5,25,5,0.25,1e-16,327,130,1000,3,300,12]],
+["Epoxy","Polymer",[1.15,3.5,60,25,0.2,1e-13,150,60,1000,0.6,4,5]],
+["Natural Rubber","Elastomer",[0.93,0.02,25,3,0.15,1e-13,180,220,1900,0.1,600,2]],
+["Silicone Rubber","Elastomer",[1.2,0.01,8,2,0.2,1e-12,250,250,1300,0.1,400,8]],
+["Alumina","Ceramic",[3.95,370,300,1800,30,1e-10,2072,8,880,4,0.1,20]],
+["Silicon Carbide","Ceramic",[3.21,410,400,2800,120,10,2730,4,750,4,0.1,30]],
+["Zirconia","Ceramic",[6,210,900,1200,2,1e-08,2715,10,400,10,0.1,40]],
+["Silicon Nitride","Ceramic",[3.2,310,700,1600,30,1e-11,1900,3.3,700,6,0.1,45]],
+["Tungsten Carbide","Ceramic",[15.6,600,500,2400,85,1000000,2870,5,200,12,0.1,40]],
+["Silicon","Ceramic",[2.33,130,120,1000,150,1000,1414,3,700,0.9,0.1,15]],
+["Soda-lime Glass","Glass/mineral",[2.5,70,50,550,1,1e-11,700,9,840,0.7,0.1,1.5]],
+["Concrete","Glass/mineral",[2.4,30,4,100,1.5,1e-05,1000,12,880,0.4,0.1,0.1]],
+["Brick","Glass/mineral",[1.9,15,5,50,0.7,1e-11,1200,6,840,0.5,0.1,0.4]],
+["CFRP","Composite",[1.6,150,1500,40,5,10000,200,2,800,20,1.5,40]],
+["GFRP","Composite",[2,40,1000,30,0.5,1e-12,200,10,1000,15,2.5,8]],
+["Oak Wood","Natural",[0.75,12,100,4,0.17,1e-13,300,5,1700,5,2,1.2]]
+];
+const names=D.map(d=>d[0]);
+const region=Object.fromEntries(D.map(d=>[d[0],d[1]]));
+const raw=D.map(d=>d[2]);
+const n=raw.length, m=AX.length;
+
+/* log-aware transform */
+const tx=(j,v)=>LOG.has(AX[j])?(AX[j]==="elong"?Math.log10(v+1):Math.log10(v)):v;
+const T=raw.map(r=>r.map((v,j)=>tx(j,v)));
+const Tmin=AX.map((_,j)=>Math.min(...T.map(r=>r[j])));
+const Tmax=AX.map((_,j)=>Math.max(...T.map(r=>r[j])));
+const norm01=(j,v)=>{const d=Tmax[j]-Tmin[j];return d?(tx(j,v)-Tmin[j])/d:0;};
+
+/* standardize (population) */
+const mean=AX.map((_,j)=>T.reduce((s,r)=>s+r[j],0)/n);
+const sd=AX.map((_,j)=>Math.sqrt(T.reduce((s,r)=>s+(r[j]-mean[j])**2,0)/n));
+const Z=T.map(r=>r.map((v,j)=>sd[j]?(v-mean[j])/sd[j]:0));
+
+/* distances + affinity */
+const dist=Array.from({length:n},()=>Array(n).fill(0));
+for(let i=0;i<n;i++)for(let k=i+1;k<n;k++){let s=0;for(let j=0;j<m;j++)s+=(Z[i][j]-Z[k][j])**2;const d=Math.sqrt(s);dist[i][k]=d;dist[k][i]=d;}
+let sm=0,c0=0;for(let i=0;i<n;i++)for(let k=i+1;k<n;k++){sm+=dist[i][k];c0++;}
+const sigma=sm/c0;
+const aff=(i,k)=>i===k?100:Math.round(100*Math.exp(-(dist[i][k]**2)/(2*sigma*sigma)));
+
+/* k-means (seeded, deterministic) */
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function kmeans(k,seed){
+  const rnd=rng(seed);let cent=[Z[Math.floor(rnd()*n)].slice()];
+  while(cent.length<k){
+    const d2=Z.map(z=>Math.min(...cent.map(c=>c.reduce((s,v,j)=>s+(v-z[j])**2,0))));
+    const tot=d2.reduce((a,b)=>a+b,0);let r=rnd()*tot,acc=0,pick=0;
+    for(let i=0;i<n;i++){acc+=d2[i];if(acc>=r){pick=i;break;}}cent.push(Z[pick].slice());
+  }
+  let assign=Array(n).fill(0);
+  for(let it=0;it<100;it++){let ch=false;
+    for(let i=0;i<n;i++){let b=0,bd=Infinity;for(let c=0;c<k;c++){const d=cent[c].reduce((s,v,j)=>s+(v-Z[i][j])**2,0);if(d<bd){bd=d;b=c;}}if(assign[i]!==b){assign[i]=b;ch=true;}}
+    for(let c=0;c<k;c++){const mem=Z.filter((_,i)=>assign[i]===c);if(mem.length)for(let j=0;j<m;j++)cent[c][j]=mem.reduce((s,z)=>s+z[j],0)/mem.length;}
+    if(!ch)break;
+  }
+  return {assign,cent};
+}
+const K=6;const {assign,cent}=kmeans(K,12345);
+
+/* classical MDS -> 2D */
+function mds(){
+  const D2=dist.map(r=>r.map(v=>v*v));const B=Array.from({length:n},()=>Array(n).fill(0));
+  const rm=Array(n).fill(0);let gm=0;
+  for(let i=0;i<n;i++){for(let k=0;k<n;k++)rm[i]+=D2[i][k];rm[i]/=n;gm+=rm[i];}gm/=n;
+  for(let i=0;i<n;i++)for(let k=0;k<n;k++)B[i][k]=-0.5*(D2[i][k]-rm[i]-rm[k]+gm);
+  function pit(M){let v=Array(n).fill(0).map((_,i)=>Math.sin(i+1));
+    for(let it=0;it<600;it++){let nv=Array(n).fill(0);for(let i=0;i<n;i++)for(let k=0;k<n;k++)nv[i]+=M[i][k]*v[k];
+      const nr=Math.sqrt(nv.reduce((s,x)=>s+x*x,0))||1;v=nv.map(x=>x/nr);}
+    const Mv=Array(n).fill(0);for(let i=0;i<n;i++)for(let k=0;k<n;k++)Mv[i]+=M[i][k]*v[k];
+    return {v,lam:v.reduce((s,x,i)=>s+x*Mv[i],0)};}
+  const e1=pit(B);const B2=B.map((row,i)=>row.map((val,k)=>val-e1.lam*e1.v[i]*e1.v[k]));const e2=pit(B2);
+  return {x:e1.v.map(v=>v*Math.sqrt(Math.max(e1.lam,0))),y:e2.v.map(v=>v*Math.sqrt(Math.max(e2.lam,0)))};
+}
+const EMB=mds();
+
+/* cluster identity */
+function clusterMembers(c){return [...Array(n).keys()].filter(i=>assign[i]===c);}
+function clusterReps(c){const idx=clusterMembers(c);
+  return idx.map(i=>[i,cent[c].reduce((s,v,j)=>s+(v-Z[i][j])**2,0)]).sort((a,b)=>a[1]-b[1]).slice(0,2).map(x=>names[x[0]]);}
+function clusterAxes(c){return [...cent[c].keys()].sort((a,b)=>cent[c][b]-cent[c][a]).slice(0,3).map(j=>AX[j]);}
+const CLCOLORS={};
+function clusterName(members){
+  const has=nm=>members.includes(nm);
+  if(has("Copper"))return ["Everyday Metals","#5C7C8A"];
+  if(has("Ti-6Al-4V"))return ["High-Strength Alloys","#C0453A"];
+  if(has("Alumina"))return ["Hard & Refractory","#D07B2C"];
+  if(has("CFRP"))return ["Fibre Composites","#9A6E8A"];
+  if(has("Gold"))return ["Dense Heavy Metals","#C8A24B"];
+  if(has("HDPE"))return ["Polymers & Soft Solids","#8FA96E"];
+  return ["Family","#888"];
+}
+const clusterInfo=[...Array(K).keys()].map(c=>{
+  const mem=clusterMembers(c).map(i=>names[i]);
+  const [nm,col]=clusterName(mem);CLCOLORS[c]=col;
+  return {c,name:nm,color:col,reps:clusterReps(c),axes:clusterAxes(c),members:mem,size:mem.length};
+});
+const colorOf=i=>CLCOLORS[assign[i]];
+
+/* ===================== THEMES ===================== */
+const MONO="IBM Plex Mono, monospace";
+function hx(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function hexA(h,a){const[r,g,b]=hx(h);return `rgba(${r},${g},${b},${a})`;}
+function lum(c){return 0.299*c[0]+0.587*c[1]+0.114*c[2];}
+
+const THEMES={
+  saffron:{label:"Saffron",mode:"dark",
+    css:{ink:"#12161B",panel:"#1A2027",panel2:"#20272F",line:"#2C353F",paper:"#ECE3D0",muted:"#8A94A0",muted2:"#657080",
+      saffron:"#F3C34C",amber:"#E68A2E",paprika:"#CE5A2A",chili:"#B23018",sage:"#8FA96E",
+      h0:"#20262D",h1:"#3E4A44",h2:"#8C7A34",h3:"#D69A2E",h4:"#E0722A",h5:"#B23018"},
+    onacc:"#12161B",cell:["#232A31","#8C7A34","#B23018"],
+    heat:[[0,"#20262D"],[.22,"#38433E"],[.42,"#7C6B2E"],[.62,"#C79A34"],[.80,"#E0722A"],[1,"#B23018"]],
+    p:{font:"#ECE3D0",land:"#1A2027",ocean:"#12161B",country:"#252C34",border:"#12161B",grid:"#2C353F",tick:"#8A94A0",tick2:"#657080",accent:"#F3C34C",accent2:"#8FA96E"}},
+  porcelain:{label:"Porcelain",mode:"light",
+    css:{ink:"#F2EEE4",panel:"#FBF9F3",panel2:"#F0EBDF",line:"#E0D8C8",paper:"#2C2622",muted:"#7A7266",muted2:"#A59C8C",
+      saffron:"#B4791F",amber:"#C8621E",paprika:"#B4471F",chili:"#8E2A16",sage:"#6E8A55",
+      h0:"#EAD9A8",h1:"#E3B96A",h2:"#D98F33",h3:"#C86A26",h4:"#A8401C",h5:"#7C230F"},
+    onacc:"#FBF9F3",cell:["#EFE7D6","#DA9A3C","#8E2A16"],
+    heat:[[0,"#EFE7D6"],[.28,"#E8C77E"],[.5,"#DA9A3C"],[.72,"#C4632A"],[1,"#8E2A16"]],
+    p:{font:"#2C2622",land:"#E9E2D3",ocean:"#F6F3EC",country:"#DAD1C0",border:"#D6CCB9",grid:"#E0D8C8",tick:"#7A7266",tick2:"#A59C8C",accent:"#B4791F",accent2:"#6E8A55"}},
+  matcha:{label:"Matcha",mode:"light",
+    css:{ink:"#EDF0E4",panel:"#F5F7EE",panel2:"#E7EBDB",line:"#D3DAC2",paper:"#232B1E",muted:"#6E7A5E",muted2:"#9AA487",
+      saffron:"#5E8A46",amber:"#B98A2E",paprika:"#C4632A",chili:"#8E2A16",sage:"#7A9A5A",
+      h0:"#C9D3A8",h1:"#AEBE6E",h2:"#C7A23E",h3:"#CE7A2A",h4:"#B5451F",h5:"#8E2A16"},
+    onacc:"#F5F7EE",cell:["#DCE4C6","#C7A23E","#8E2A16"],
+    heat:[[0,"#DCE4C6"],[.3,"#B7C57E"],[.5,"#C9A33E"],[.72,"#C4632A"],[1,"#8E2A16"]],
+    p:{font:"#232B1E",land:"#E3E8D2",ocean:"#EFF2E7",country:"#CBD3B6",border:"#CBD3B6",grid:"#D3DAC2",tick:"#6E7A5E",tick2:"#9AA487",accent:"#5E8A46",accent2:"#B98A2E"}},
+  merlot:{label:"Merlot",mode:"dark",
+    css:{ink:"#1B1116",panel:"#271821",panel2:"#2F1E28",line:"#3E2A34",paper:"#EFE2E6",muted:"#A88F98",muted2:"#7C636E",
+      saffron:"#D8A24B",amber:"#D98A3E",paprika:"#C0623F",chili:"#7C1F2A",sage:"#C46B7A",
+      h0:"#2F1B27",h1:"#5A2436",h2:"#8E2F44",h3:"#C0623F",h4:"#D98A3E",h5:"#E3AE45"},
+    onacc:"#1B1116",cell:["#241521","#8A2E43","#E3AE45"],
+    heat:[[0,"#241521"],[.26,"#4E2233"],[.5,"#8A2E43"],[.74,"#C05A34"],[1,"#E3AE45"]],
+    p:{font:"#EFE2E6",land:"#271821",ocean:"#1B1116",country:"#3A2530",border:"#1B1116",grid:"#3E2A34",tick:"#A88F98",tick2:"#7C636E",accent:"#D8A24B",accent2:"#C46B7A"}},
+  espresso:{label:"Espresso",mode:"dark",
+    css:{ink:"#17120E",panel:"#211913",panel2:"#29201A",line:"#3A2E24",paper:"#EDE3D2",muted:"#A8977F",muted2:"#7C6C58",
+      saffron:"#D8A25A",amber:"#C87F3C",paprika:"#B5652E",chili:"#9A3B1E",sage:"#A79A6E",
+      h0:"#2A1E14",h1:"#4A3320",h2:"#7C5628",h3:"#B67C33",h4:"#D29A45",h5:"#E3B15A"},
+    onacc:"#17120E",cell:["#241A12","#7C5628","#E3B15A"],
+    heat:[[0,"#241A12"],[.28,"#4A3320"],[.5,"#7C5628"],[.72,"#B67C33"],[1,"#E3B15A"]],
+    p:{font:"#EDE3D2",land:"#211913",ocean:"#17120E",country:"#33271D",border:"#17120E",grid:"#3A2E24",tick:"#A8977F",tick2:"#7C6C58",accent:"#D8A25A",accent2:"#C87F3C"}}
+};
+let TP=THEMES.saffron.p, curTheme="saffron";
+const BL=()=>({paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+  font:{family:"Inter, sans-serif",color:TP.font},margin:{l:0,r:0,t:0,b:0}});
+const CONFIG={displayModeBar:false,responsive:true};
+
+/* ===================== ASHBY (hero) ===================== */
+const AXOPT=[["density","Density"],["modulus","Young's modulus"],["strength","Strength"],["thermCond","Thermal cond."],["elecCond","Electrical cond."],["meltPt","Melting point"],["toughness","Toughness"],["cost","Cost"]];
+let current="Copper", xAx="density", yAx="modulus";
+const axType=k=>LOG.has(k)?"log":"linear";
+const axLabel=k=>(AXOPT.find(o=>o[0]===k)||[k,k])[1]+" ("+UNIT[k]+")";
+function drawAshby(){
+  const i=names.indexOf(current);
+  const z=names.map((_,k)=>aff(i,k));
+  const xi=AX.indexOf(xAx), yi=AX.indexOf(yAx);
+  const data=[{
+    type:"scatter",mode:"markers+text",
+    x:raw.map(r=>r[xi]),y:raw.map(r=>r[yi]),
+    text:names,textposition:"top center",
+    textfont:{size:9,color:TP.tick,family:"Inter"},
+    marker:{size:names.map((_,k)=>k===i?20:13),
+      color:z,colorscale:TP.heat,cmin:0,cmax:100,
+      line:{color:names.map((_,k)=>k===i?TP.font:TP.border),width:names.map((_,k)=>k===i?2.5:1)},
+      colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:TP.tick}},
+        thickness:10,len:.7,x:1.015,tickfont:{family:MONO,size:10,color:TP.tick},outlinewidth:0}},
+    customdata:names.map((nm,k)=>[nm,z[k]]),
+    hovertemplate:"<b>%{customdata[0]}</b><br>"+xAx+" %{x}<br>"+yAx+" %{y}<br>affinity %{customdata[1]}<extra></extra>"
+  }];
+  const layout={...BL(),showlegend:false,
+    xaxis:{title:{text:axLabel(xAx),font:{size:12,color:TP.tick}},type:axType(xAx),gridcolor:TP.grid,zeroline:false,tickfont:{size:10,color:TP.tick2},ticks:"outside",tickcolor:TP.grid,linecolor:TP.grid},
+    yaxis:{title:{text:axLabel(yAx),font:{size:12,color:TP.tick}},type:axType(yAx),gridcolor:TP.grid,zeroline:false,tickfont:{size:10,color:TP.tick2},ticks:"outside",tickcolor:TP.grid,linecolor:TP.grid},
+    margin:{l:66,r:8,t:10,b:52},hovermode:"closest"};
+  Plotly.react("ashby",data,layout,CONFIG);
+  const gd=document.getElementById("ashby");
+  if(gd.removeAllListeners)gd.removeAllListeners("plotly_click");
+  gd.on("plotly_click",ev=>{const p=ev.points&&ev.points[0];if(p&&typeof p.pointIndex==="number")setRef(names[p.pointIndex]);});
+}
+
+/* ===================== BARS + DISTANT ===================== */
+function drawBars(){
+  const i=names.indexOf(current);
+  const arr=names.map((nm,k)=>[nm,aff(i,k)]).filter(a=>a[0]!==current).sort((a,b)=>b[1]-a[1]);
+  document.getElementById("whoName").textContent=current;
+  const top=arr.slice(0,10);
+  document.getElementById("bars").innerHTML=top.map(([nm,sc])=>`
+    <div class="bar-row" data-nm="${nm}" tabindex="0" role="button" aria-label="Set ${nm} as reference">
+      <div class="nm">${nm}</div>
+      <div class="track"><div class="fill" style="width:${sc}%"></div></div>
+      <div class="sc">${sc}</div>
+    </div>`).join("");
+  document.querySelectorAll(".bar-row").forEach(el=>{
+    const go=()=>setRef(el.dataset.nm);
+    el.addEventListener("click",go);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
+  });
+  const far=arr.slice(-3).reverse();
+  document.getElementById("distant").innerHTML=
+    `Most distant material${far.length>1?"s":""}: `+far.map(([nm,sc])=>`<b>${nm}</b> (${sc})`).join(" · ");
+}
+
+/* ===================== RADAR ===================== */
+const RAX=[["modulus","Stiffness"],["strength","Strength"],["hardness","Hardness"],["thermCond","Thermal"],["elecCond","Electrical"],["toughness","Toughness"],["density","Density"],["cost","Cost"]];
+function radarVals(name){const r=raw[names.indexOf(name)];return RAX.map(([k])=>Math.round(norm01(AX.indexOf(k),r[AX.indexOf(k)])*10));}
+function drawRadar(){
+  const i=names.indexOf(current);
+  const arr=names.map((nm,k)=>[nm,aff(i,k)]).filter(a=>a[0]!==current).sort((a,b)=>b[1]-a[1]);
+  const nb=arr[0][0];
+  const theta=RAX.map(x=>x[1]).concat(RAX[0][1]);
+  const mk=(nm,col,fill)=>{const v=radarVals(nm);return{type:"scatterpolar",r:v.concat(v[0]),theta,
+    name:nm,mode:"lines",line:{color:col,width:2},fill:"toself",fillcolor:fill,
+    hovertemplate:"%{theta}: %{r}/10<extra>"+nm+"</extra>"};};
+  const data=[mk(nb,TP.accent2,hexA(TP.accent2,.14)),mk(current,TP.accent,hexA(TP.accent,.22))];
+  const layout={...BL(),showlegend:true,
+    legend:{orientation:"h",y:-.08,x:.5,xanchor:"center",font:{size:12,color:TP.font}},
+    polar:{bgcolor:"rgba(0,0,0,0)",
+      radialaxis:{range:[0,10],gridcolor:TP.grid,tickfont:{family:MONO,size:9,color:TP.tick2},angle:90,tickangle:90},
+      angularaxis:{gridcolor:TP.grid,tickfont:{size:11,color:TP.tick}}},
+    margin:{l:36,r:36,t:20,b:44}};
+  Plotly.react("radar",data,layout,CONFIG);
+}
+
+/* ===================== CLUSTER CARDS ===================== */
+function drawClusters(){
+  document.getElementById("clusters").innerHTML=clusterInfo.map(ci=>`
+    <div class="cl-card" style="--cc:${ci.color}">
+      <div class="cl-size">${ci.size} materials</div>
+      <div class="cl-name">${ci.name}</div>
+      <div class="cl-reps">core: ${ci.reps.join(" · ")}</div>
+      <div class="cl-tags">${ci.axes.map(a=>`<span class="tag">${AXLABEL[a]}</span>`).join("")}</div>
+      <div class="cl-mem">${ci.members.join(", ")}</div>
+    </div>`).join("");
+}
+
+/* ===================== MDS SCATTER ===================== */
+function drawMDS(){
+  const traces=clusterInfo.map(ci=>{
+    const idx=[...Array(n).keys()].filter(i=>assign[i]===ci.c);
+    return{type:"scatter",mode:"markers+text",name:ci.name,
+      x:idx.map(i=>EMB.x[i]),y:idx.map(i=>EMB.y[i]),
+      text:idx.map(i=>names[i]),textposition:"top center",
+      textfont:{size:10,color:TP.tick,family:"Inter"},
+      marker:{size:12,color:ci.color,line:{color:TP.border,width:1.5},opacity:.95},
+      hovertemplate:"<b>%{text}</b><extra>"+ci.name+"</extra>"};
+  });
+  const layout={...BL(),showlegend:false,
+    xaxis:{zeroline:false,showgrid:false,showticklabels:false,visible:false},
+    yaxis:{zeroline:false,showgrid:false,showticklabels:false,visible:false,scaleanchor:"x"},
+    margin:{l:10,r:10,t:10,b:10},hovermode:"closest"};
+  Plotly.react("mds",traces,layout,CONFIG);
+  document.getElementById("mdsleg").innerHTML=clusterInfo.map(ci=>
+    `<span><i style="background:${ci.color}"></i>${ci.name}</span>`).join("");
+}
+
+/* ===================== MATRIX ===================== */
+function drawMatrix(){
+  let order=[];
+  clusterInfo.forEach(ci=>{
+    const idx=[...Array(n).keys()].filter(i=>assign[i]===ci.c).sort((a,b)=>EMB.x[a]-EMB.x[b]);
+    order=order.concat(idx);
+  });
+  const labels=order.map(i=>names[i]);
+  const z=order.map(i=>order.map(k=>aff(i,k)));
+  const data=[{type:"heatmap",z,x:labels,y:labels,colorscale:TP.heat,zmin:0,zmax:100,xgap:1,ygap:1,
+    colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:TP.tick}},
+      thickness:10,len:.6,tickfont:{family:MONO,size:10,color:TP.tick},outlinewidth:0},
+    hovertemplate:"%{y} ↔ %{x}<br>affinity %{z}<extra></extra>"}];
+  const layout={...BL(),
+    xaxis:{tickfont:{size:9,color:TP.tick},tickangle:-60,side:"bottom",showgrid:false,constrain:"domain"},
+    yaxis:{tickfont:{size:9,color:TP.tick},autorange:"reversed",showgrid:false,scaleanchor:"x",constrain:"domain"},
+    margin:{l:110,r:10,t:10,b:110}};
+  Plotly.react("matrix",data,layout,CONFIG);
+}
+
+/* ===================== ORCHESTRATION ===================== */
+function setRef(name){current=name;document.getElementById("ref").value=name;drawAshby();drawBars();drawRadar();}
+function buildSelect(){
+  const sel=document.getElementById("ref");
+  const byRegion={};names.forEach(nm=>{(byRegion[region[nm]] ||= []).push(nm);});
+  sel.innerHTML=Object.keys(byRegion).map(rg=>
+    `<optgroup label="${rg}">`+byRegion[rg].map(nm=>`<option value="${nm}">${nm}</option>`).join("")+`</optgroup>`).join("");
+  sel.value=current;
+  sel.addEventListener("change",e=>setRef(e.target.value));
+  const xs=document.getElementById("xAx"),ys=document.getElementById("yAx");
+  const opts=AXOPT.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("");
+  xs.innerHTML=opts;ys.innerHTML=opts;xs.value=xAx;ys.value=yAx;
+  xs.addEventListener("change",e=>{xAx=e.target.value;drawAshby();});
+  ys.addEventListener("change",e=>{yAx=e.target.value;drawAshby();});
+}
+
+/* ===================== DATA TABLE (theme-aware) ===================== */
+const HEAD=[["density","ρ"],["modulus","E"],["strength","σ"],["hardness","H"],["thermCond","k"],["elecCond","σₑ"],["meltPt","Tm"],["thermExp","α"],["specHeat","Cp"],["toughness","K"],["elong","ε"],["cost","$"]];
+function heatColor(t){
+  t=Math.max(0,Math.min(1,t));
+  const A=hx(THEMES[curTheme].cell[0]),B=hx(THEMES[curTheme].cell[1]),C=hx(THEMES[curTheme].cell[2]);
+  let a,b,lt; if(t<=.5){a=A;b=B;lt=t/.5;}else{a=B;b=C;lt=(t-.5)/.5;}
+  const rgb=a.map((x,i)=>Math.round(x+(b[i]-x)*lt));
+  return {bg:`rgb(${rgb.join(",")})`,fg:lum(rgb)>150?"#1B1512":"#F2ECDD"};
+}
+function fmt(v){
+  if(v===0)return"0";
+  const a=Math.abs(v);
+  if(a>=1e4||a<1e-2){return v.toExponential(0).replace("e+","e").replace("e-0","e-").replace(/e(\d)/,"e$1");}
+  if(a>=100)return String(Math.round(v));
+  if(a>=10)return v.toFixed(0);
+  if(a>=1)return v.toFixed(1);
+  return v.toFixed(2);
+}
+function buildDataTable(){
+  const thead="<thead><tr><th>Material</th><th>Family</th>"+
+    HEAD.map(([k,s])=>`<th title="${AXLABEL[k]} (${UNIT[k]})">${s}</th>`).join("")+"</tr></thead>";
+  const rows=D.map(([nm,rg,vals])=>{
+    const cells=vals.map((v,j)=>{const c=heatColor(norm01(j,v));return `<td class="v" style="background:${c.bg};color:${c.fg}" title="${AXLABEL[AX[j]]}: ${v} ${UNIT[AX[j]]}">${fmt(v)}</td>`;}).join("");
+    return `<tr><td class="name">${nm}</td><td class="reg">${rg}</td>${cells}</tr>`;
+  }).join("");
+  document.getElementById("dataTable").innerHTML=thead+"<tbody>"+rows+"</tbody>";
+}
+
+/* ===================== FLAGSHIP USES ===================== */
+const APPS={
+"Mild Steel":["Structural Beams","🏗️","The backbone of buildings, bridges and railway track."],
+"Stainless 304":["Cutlery & Sinks","🍴","Corrosion-proof shine for kitchens, tanks and surgery."],
+"Cast Iron":["Engine Blocks","🍳","Cast into skillets, pipes and heavy machine bases."],
+"Tool Steel":["Cutting Dies","🔧","Hardened into drills, punches, dies and moulds."],
+"Aluminum 6061":["Aircraft Frames","✈️","Light, strong skin for planes, cans and bicycles."],
+"Ti-6Al-4V":["Jet Turbines","🚀","Aerospace blades and implants where weight is critical."],
+"Magnesium AZ31":["Laptop Shells","💻","The lightest structural metal — cases and wheels."],
+"Titanium (pure)":["Medical Implants","🦴","Biocompatible bone screws and chemical plant gear."],
+"Copper":["Electrical Wiring","🔌","The default conductor for cables, motors and busbars."],
+"Silver":["Contacts & Optics","🪙","The best conductor — contacts, mirrors and jewellery."],
+"Gold":["Microelectronics","💍","Bonding wires and connectors that never tarnish."],
+"Nickel":["Superalloys & Plating","🔩","Coins, plating and the base of jet superalloys."],
+"Zinc":["Galvanizing","🛡️","Sacrificial coating that stops steel from rusting."],
+"Brass":["Instruments & Fittings","🎺","Machinable alloy for valves, taps and horns."],
+"Bronze":["Bearings & Bells","🔔","The ancient casting metal — bells and bushings."],
+"Lead":["Radiation Shielding","🔋","Dense shielding and the classic car battery plate."],
+"Tungsten":["Lamp Filaments","💡","Highest-melting metal — filaments and drill tips."],
+"HDPE":["Bottles & Pipes","🧴","Tough, cheap plastic for containers and piping."],
+"Polypropylene":["Living Hinges","📦","Flexible packaging, bottle caps and car trim."],
+"PVC":["Pipes & Cladding","🚰","Rigid or flexible — plumbing, flooring and cable."],
+"PET":["Drink Bottles","🥤","Clear, recyclable bottles and polyester fibre."],
+"Nylon 6,6":["Gears & Textiles","⚙️","Self-lubricating gears, ropes and fabrics."],
+"Polycarbonate":["Safety Glazing","🥽","Bulletproof glass, visors and headlamp lenses."],
+"PMMA (Acrylic)":["Optical Lenses","🔎","Shatter-resistant 'glass' for signs and lenses."],
+"PTFE":["Non-stick Coating","🍳","Slippery, inert coating for pans and seals."],
+"Epoxy":["Adhesives & PCBs","🧩","The glue and the matrix behind circuit boards."],
+"Natural Rubber":["Tyres","🛞","The elastic backbone of tyres, seals and belts."],
+"Silicone Rubber":["Seals & Bakeware","🧴","Heat-stable seals, bakeware and soft implants."],
+"Alumina":["Spark Plugs","⚡","Hard electrical insulator — plugs, substrates, armour."],
+"Silicon Carbide":["Brake Discs","💠","Abrasives, ceramic brakes and power electronics."],
+"Zirconia":["Dental Crowns","🦷","Tough ceramic for crowns and thermal barriers."],
+"Silicon Nitride":["Ball Bearings","🔵","Wear-proof bearings and hot engine parts."],
+"Tungsten Carbide":["Cutting Tools","🛠️","The hardest common tool tip — drills and mills."],
+"Silicon":["Microchips","💻","The semiconductor that runs every computer."],
+"Soda-lime Glass":["Windows","🪟","Everyday flat glass, bottles and jars."],
+"Concrete":["Foundations","🏢","The world's most-used construction material."],
+"Brick":["Masonry Walls","🧱","Fired clay — walls and paving for millennia."],
+"CFRP":["Race-car Chassis","🏎️","Stiff, ultralight shells for F1, bikes and rockets."],
+"GFRP":["Boat Hulls","⛵","Cheap composite for hulls, tanks and body panels."],
+"Oak Wood":["Furniture","🪑","Renewable structural material — furniture and floors."]
+};
+let appSel="Silicon", appDrawn=false;
+const clusterNameOf=nm=>clusterInfo.find(x=>x.c===assign[names.indexOf(nm)]).name;
+const clusterColorOf=nm=>CLCOLORS[assign[names.indexOf(nm)]];
+function drawAppChart(){
+  if(typeof Plotly==="undefined")return;
+  const xi=AX.indexOf("density"),yi=AX.indexOf("modulus");
+  const traces=clusterInfo.map(ci=>{
+    const idx=[...Array(n).keys()].filter(k=>assign[k]===ci.c);
+    return{type:"scatter",mode:"markers",name:ci.name,
+      x:idx.map(k=>raw[k][xi]),y:idx.map(k=>raw[k][yi]),
+      marker:{size:idx.map(k=>names[k]===appSel?20:12),color:ci.color,
+        line:{color:idx.map(k=>names[k]===appSel?TP.accent:TP.border),width:idx.map(k=>names[k]===appSel?2.6:1)}},
+      customdata:idx.map(k=>[names[k],APPS[names[k]][0]]),
+      hovertemplate:"<b>%{customdata[0]}</b><br>%{customdata[1]}<extra>"+ci.name+"</extra>",
+      _names:idx.map(k=>names[k])};
+  });
+  const layout={...BL(),showlegend:false,
+    xaxis:{title:{text:"Density (g/cm³)",font:{size:12,color:TP.tick}},type:"linear",gridcolor:TP.grid,zeroline:false,tickfont:{size:10,color:TP.tick2},ticks:"outside",tickcolor:TP.grid,linecolor:TP.grid},
+    yaxis:{title:{text:"Young's modulus (GPa)",font:{size:12,color:TP.tick}},type:"log",gridcolor:TP.grid,zeroline:false,tickfont:{size:10,color:TP.tick2},ticks:"outside",tickcolor:TP.grid,linecolor:TP.grid},
+    margin:{l:60,r:8,t:10,b:48},hovermode:"closest"};
+  Plotly.react("appchart",traces,layout,CONFIG);
+  const gd=document.getElementById("appchart");
+  if(gd.removeAllListeners)gd.removeAllListeners("plotly_click");
+  gd.on("plotly_click",ev=>{const p=ev.points&&ev.points[0];if(p){const nm=p.data._names[p.pointIndex];if(nm&&APPS[nm])selectApp(nm);}});
+  appDrawn=true;
+}
+function selectApp(nm){
+  appSel=nm;
+  const [app,emoji,desc]=APPS[nm];
+  const p=document.getElementById("plate");
+  p.querySelector(".plate-emoji").textContent=emoji;
+  p.querySelector(".plate-country").textContent=nm;
+  p.querySelector(".plate-dish").textContent=app;
+  p.querySelector(".plate-desc").textContent=desc;
+  const tag=p.querySelector(".plate-tag");
+  tag.textContent=clusterNameOf(nm);
+  tag.style.background=clusterColorOf(nm);
+  document.querySelectorAll(".dish-card").forEach(el=>el.classList.toggle("on",el.dataset.c===nm));
+  if(appDrawn)drawAppChart();
+}
+function buildAppGrid(){
+  document.getElementById("dishgrid").innerHTML=names.map(nm=>{
+    const [app,emoji,desc]=APPS[nm];
+    return `<button class="dish-card" data-c="${nm}"><span class="de">${emoji}</span>`+
+      `<span class="dc">${nm}</span><span class="dn">${app}</span><span class="dd">${desc}</span></button>`;
+  }).join("");
+  document.querySelectorAll(".dish-card").forEach(el=>el.addEventListener("click",()=>selectApp(el.dataset.c)));
+}
+function buildAppLegend(){
+  document.getElementById("dishleg").innerHTML=clusterInfo.map(ci=>
+    `<span><i style="background:${ci.color}"></i>${ci.name}</span>`).join("");
+}
+
+/* ===================== TABS ===================== */
+function showTab(id){
+  document.querySelectorAll(".tabpane").forEach(p=>p.hidden=(p.id!==id));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.tab===id));
+  if(id==="tab-atlas"){["ashby","radar","mds","matrix"].forEach(g=>{const el=document.getElementById(g);if(el&&el.data)try{Plotly.Plots.resize(el);}catch(e){}});}
+  if(id==="tab-dishes"){if(!appDrawn)drawAppChart();else{const el=document.getElementById("appchart");if(el&&el.data)try{Plotly.Plots.resize(el);}catch(e){}}}
+  window.scrollTo(0,0);
+}
+
+/* ===================== THEME ENGINE ===================== */
+function setThemeTokens(key){
+  const t=THEMES[key]||THEMES.saffron; curTheme=THEMES[key]?key:"saffron";
+  const r=document.documentElement.style;
+  Object.entries(t.css).forEach(([k,v])=>r.setProperty("--"+k,v));
+  r.setProperty("--bar",hexA(t.css.ink,.85));
+  r.setProperty("--onacc",t.onacc);
+  document.documentElement.dataset.theme=curTheme;
+  document.documentElement.style.colorScheme=t.mode;
+  TP=t.p;
+  updateThemeUI();
+}
+function redrawAll(){
+  buildDataTable();
+  if(typeof Plotly==="undefined")return;
+  drawAshby();drawBars();drawRadar();drawMDS();drawMatrix();
+  if(appDrawn)drawAppChart();
+}
+function applyTheme(key){setThemeTokens(key);redrawAll();saveTheme(key);}
+function saveTheme(k){try{localStorage.setItem("matAtlasTheme",k);}catch(e){}}
+function loadTheme(){try{return localStorage.getItem("matAtlasTheme");}catch(e){return null;}}
+function swatch(t){return `linear-gradient(135deg,${t.cell[0]},${t.cell[1]},${t.cell[2]})`;}
+function buildThemeMenu(){
+  const menu=document.getElementById("thememenu");
+  menu.innerHTML=Object.entries(THEMES).map(([k,t])=>
+    `<button class="titem" data-k="${k}" role="menuitem"><span class="sw" style="background:${swatch(t)}"></span>${t.label}<span class="mode">${t.mode}</span></button>`).join("");
+  menu.querySelectorAll(".titem").forEach(el=>el.addEventListener("click",()=>{applyTheme(el.dataset.k);closeThemeMenu();}));
+}
+function updateThemeUI(){
+  const sw=document.getElementById("themesw");
+  if(sw)sw.style.background=swatch(THEMES[curTheme]);
+  document.querySelectorAll(".titem").forEach(el=>el.classList.toggle("on",el.dataset.k===curTheme));
+}
+const themebtn=document.getElementById("themebtn"),thememenu=document.getElementById("thememenu");
+function closeThemeMenu(){thememenu.classList.remove("open");themebtn.setAttribute("aria-expanded","false");}
+themebtn.addEventListener("click",e=>{e.stopPropagation();const o=thememenu.classList.toggle("open");themebtn.setAttribute("aria-expanded",o);});
+document.addEventListener("click",e=>{if(!thememenu.contains(e.target)&&e.target!==themebtn&&!themebtn.contains(e.target))closeThemeMenu();});
+
+/* ===================== NOTEBOOK ===================== */
+const NB=[...document.querySelectorAll('#tab-notebook script[type="text/x-nb"]')]
+  .map(el=>({t:el.dataset.t, s:el.textContent.replace(/^\n/,"").replace(/\s+$/,"")}));
+function nbEsc(x){return x.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function pyHi(code){
+  code=nbEsc(code);
+  const rx=/(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+\.?\d*\b)|(\b(?:import|from|as|for|in|def|return|print|if|elif|else|lambda|and|or|not|None|True|False|class|with|while)\b)/g;
+  return code.replace(rx,(mm,c,s,nu,k)=>c?`<span class="c">${c}</span>`:s?`<span class="s">${s}</span>`:nu?`<span class="nu">${nu}</span>`:`<span class="k">${k}</span>`);
+}
+function mdToHtml(md){
+  const esc2=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const inl=t=>esc2(t).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  let out="",list=false; const closeL=()=>{if(list){out+="</ul>";list=false;}};
+  md.split("\n").forEach(raw=>{
+    const line=raw.replace(/\s+$/,"");
+    if(!line.trim()){closeL();return;}
+    if(line.startsWith("### ")){closeL();out+="<h3>"+inl(line.slice(4))+"</h3>";}
+    else if(line.startsWith("## ")){closeL();out+="<h2>"+inl(line.slice(3))+"</h2>";}
+    else if(line.startsWith("# ")){closeL();out+="<h2>"+inl(line.slice(2))+"</h2>";}
+    else if(line.trim()==="---"){closeL();out+="<hr>";}
+    else if(line.startsWith("> ")){closeL();out+="<blockquote>"+inl(line.slice(2))+"</blockquote>";}
+    else if(line.startsWith("- ")){if(!list){out+="<ul>";list=true;}out+="<li>"+inl(line.slice(2))+"</li>";}
+    else {closeL();out+="<p>"+inl(line)+"</p>";}
+  });
+  closeL(); return out;
+}
+function renderNotebook(){
+  let nn=0;
+  document.getElementById("nbcells").innerHTML=NB.map(c=>{
+    if(c.t==="md")return `<div class="nb-md">${mdToHtml(c.s)}</div>`;
+    nn++;
+    return `<div class="nb-code"><div class="nb-prompt">In [${nn}]:</div><pre>${pyHi(c.s)}</pre></div>`;
+  }).join("");
+}
+function buildIpynb(){
+  const cells=NB.map(c=>{
+    const lines=c.s.split("\n");
+    const src=lines.map((l,i)=>i<lines.length-1?l+"\n":l);
+    return c.t==="md"
+      ? {cell_type:"markdown",metadata:{},source:src}
+      : {cell_type:"code",execution_count:null,metadata:{},outputs:[],source:src};
+  });
+  return {cells,metadata:{kernelspec:{display_name:"Python 3",language:"python",name:"python3"},
+    language_info:{name:"python"}},nbformat:4,nbformat_minor:5};
+}
+function downloadIpynb(){
+  const blob=new Blob([JSON.stringify(buildIpynb(),null,1)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="material-atlas.ipynb";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
+/* ===================== INIT ===================== */
+buildThemeMenu();
+setThemeTokens(loadTheme()||"saffron");
+buildSelect();
+drawClusters();
+buildDataTable();buildAppGrid();buildAppLegend();
+renderNotebook();
+selectApp(appSel);
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>showTab(t.dataset.tab)));
+{const dl=document.getElementById("dlipynb");if(dl)dl.addEventListener("click",downloadIpynb);}
+
+/* wait for the chart library, then draw everything that needs it */
+(function boot(tries){
+  if(typeof Plotly!=="undefined"){
+    drawAshby();drawBars();drawRadar();drawMDS();drawMatrix();
+    return;
+  }
+  if(tries>150){
+    ["ashby","radar","mds","matrix"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.innerHTML='<div class="loaderr">Couldn\u2019t load the chart library — check your connection and refresh the page.</div>';
+    });
+    return;
+  }
+  setTimeout(()=>boot(tries+1),100);
+})(0);
+</script>
+</body>
+</html>
