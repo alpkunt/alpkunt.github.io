@@ -7,14 +7,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js" charset="utf-8"
+  onerror="(function(){var s=document.createElement('script');s.src='https://cdn.plot.ly/plotly-2.35.2.min.js';document.head.appendChild(s);})()"></script>
 <style>
   :root{
     --ink:#12161B; --panel:#1A2027; --panel2:#20272F; --line:#2C353F;
     --paper:#ECE3D0; --muted:#8A94A0; --muted2:#657080;
     --saffron:#F3C34C; --amber:#E68A2E; --paprika:#CE5A2A; --chili:#B23018; --sage:#8FA96E;
     --h0:#20262D; --h1:#3E4A44; --h2:#8C7A34; --h3:#D69A2E; --h4:#E0722A; --h5:#B23018;
+    --bar:rgba(18,22,27,.85); --onacc:#12161B;
   }
+  html{transition:background .3s ease}
+  body,.card,.topbar,.tabs,.proj,.dish-card,.cl-card{transition:background .3s ease,border-color .3s ease,color .3s ease}
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);
     font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
@@ -28,7 +32,7 @@
   /* top bar */
   .topbar{display:flex;align-items:center;justify-content:space-between;
     padding:18px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;
-    background:rgba(18,22,27,.82);backdrop-filter:blur(8px);z-index:20}
+    background:var(--bar);backdrop-filter:blur(8px);z-index:20}
   .mark{font-family:"Fraunces",serif;font-weight:600;font-size:19px;letter-spacing:.2px;display:flex;align-items:center;gap:10px}
   .mark .dot{width:11px;height:11px;border-radius:50%;
     background:conic-gradient(from 210deg,var(--h5),var(--h4),var(--h3),var(--saffron),var(--h5));
@@ -40,6 +44,22 @@
   .byline b{color:var(--paper);font-weight:500}
   .chaticon{display:inline-block;vertical-align:middle;transform:translateY(1px)}
   .chaticon .bub{fill:var(--saffron)}
+  /* theme switcher */
+  .themebar{position:relative}
+  .themebtn{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);
+    color:var(--paper);border-radius:999px;padding:6px 12px 6px 8px;cursor:pointer;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.3px}
+  .themebtn:hover{border-color:var(--amber)}
+  .sw{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.18);flex:none}
+  .thememenu{position:absolute;right:0;top:calc(100% + 8px);background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:6px;min-width:196px;display:none;flex-direction:column;gap:2px;z-index:40;
+    box-shadow:0 20px 54px -22px rgba(0,0,0,.6)}
+  .thememenu.open{display:flex}
+  .titem{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--paper);
+    padding:9px 10px;border-radius:10px;cursor:pointer;font-family:"Inter",sans-serif;font-size:13.5px;text-align:left;width:100%}
+  .titem:hover,.titem.on{background:var(--panel2)}
+  .titem .mode{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.5px}
   @media(max-width:780px){.topbar .chip{display:none}}
   @media(max-width:480px){.byline{font-size:11px;gap:5px}.byline .aiw{display:none}}
 
@@ -80,7 +100,12 @@
 
   /* map block */
   #map{height:520px}
-  @media(max-width:640px){#map{height:400px}}
+  @media(max-width:640px){
+    #map{height:460px}
+    .controls{flex-direction:column;align-items:stretch}
+    .controls select{width:100%;min-width:0;font-size:16px;padding:13px 40px 13px 14px}
+    .controls .hint{padding-bottom:0}
+  }
 
   .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
   @media(max-width:900px){.grid2{grid-template-columns:1fr}}
@@ -134,12 +159,12 @@
 
   /* tabs */
   .tabs{position:sticky;top:56px;z-index:15;display:flex;gap:6px;padding:10px 22px;
-    background:rgba(18,22,27,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+    background:var(--bar);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .tab{font-family:"IBM Plex Mono",monospace;font-size:12.5px;letter-spacing:.4px;color:var(--muted);
     background:none;border:1px solid transparent;border-radius:999px;padding:8px 16px;cursor:pointer;
     transition:color .15s,background .15s}
   .tab:hover{color:var(--paper)}
-  .tab.on{color:var(--ink);background:var(--saffron);font-weight:500}
+  .tab.on{color:var(--onacc);background:var(--saffron);font-weight:500}
   .tabpane[hidden]{display:none}
 
   /* method + data table */
@@ -179,7 +204,7 @@
     text-transform:uppercase;color:var(--amber);margin-top:16px}
   .plate-dish{font-family:"Fraunces",serif;font-size:30px;color:var(--paper);line-height:1.12;margin-top:2px}
   .plate-desc{color:var(--muted);font-size:14.5px;max-width:350px;line-height:1.55;margin-top:6px}
-  .plate-tag{margin-top:14px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink);
+  .plate-tag{margin-top:14px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#17120E;
     padding:5px 12px;border-radius:999px;font-weight:500}
   .plate-tag:empty{display:none}
   @media(max-width:900px){.plate{min-height:auto;padding:34px 18px}}
@@ -197,6 +222,8 @@
     color:var(--muted);text-transform:uppercase}
   .dish-card .dn{font-family:"Fraunces",serif;font-size:16px;color:var(--paper);line-height:1.15}
   .dish-card .dd{font-size:12px;color:var(--muted);line-height:1.45;margin-top:3px}
+  .loaderr{display:flex;align-items:center;justify-content:center;height:100%;min-height:180px;
+    padding:24px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -211,7 +238,12 @@
       <path d="M9 12.4c1.6 1.7 4.4 1.7 6 0" fill="none" stroke="#12161B" stroke-width="1.4" stroke-linecap="round"/>
     </svg>
     <span class="aiw">with AI</span></div>
-  <div class="chip">40 cuisines · 19 palate axes</div>
+  <div class="themebar">
+    <button class="themebtn" id="themebtn" aria-haspopup="true" aria-expanded="false">
+      <span class="sw" id="themesw"></span><span class="tlbl">Theme</span>
+    </button>
+    <div class="thememenu" id="thememenu" role="menu"></div>
+  </div>
 </div>
 
 <nav class="tabs" role="tablist" aria-label="Views">
@@ -239,7 +271,7 @@
       <div class="ctl-label">Reference cuisine</div>
       <select id="ref" aria-label="Choose a reference cuisine"></select>
     </div>
-    <div class="hint">The map is a heatmap of <b>affinity</b> to your pick — deep chili‑red means nearly the same palate, cool slate means a distant one. <b>Click any country</b> to re‑center the atlas on it.</div>
+    <div class="hint">The map is a heatmap of <b>affinity</b> to your pick — deeper colour means a closer palate. Pick a cuisine above, tap a name in the list below, or <b>tap a country</b> on the map. On a phone, <b>pinch to zoom in</b> first, then tap; double‑tap resets.</div>
   </div>
 
   <section style="padding-top:6px">
@@ -491,12 +523,57 @@ const clusterInfo=[...Array(K).keys()].map(c=>{
 });
 const colorOf=i=>CLCOLORS[assign[i]];
 
-/* ===================== PLOTLY THEME ===================== */
-const HEAT=[[0,"#20262D"],[0.22,"#38433E"],[0.42,"#7C6B2E"],[0.62,"#C79A34"],[0.80,"#E0722A"],[1,"#B23018"]];
-const FONT={family:"Inter, sans-serif",color:"#ECE3D0"};
+/* ===================== THEMES ===================== */
 const MONO="IBM Plex Mono, monospace";
-const baseLayout={paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",font:FONT,margin:{l:0,r:0,t:0,b:0}};
+function hx(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function hexA(h,a){const[r,g,b]=hx(h);return `rgba(${r},${g},${b},${a})`;}
+function lum(c){return 0.299*c[0]+0.587*c[1]+0.114*c[2];}
+
+const THEMES={
+  saffron:{label:"Saffron",mode:"dark",
+    css:{ink:"#12161B",panel:"#1A2027",panel2:"#20272F",line:"#2C353F",paper:"#ECE3D0",muted:"#8A94A0",muted2:"#657080",
+      saffron:"#F3C34C",amber:"#E68A2E",paprika:"#CE5A2A",chili:"#B23018",sage:"#8FA96E",
+      h0:"#20262D",h1:"#3E4A44",h2:"#8C7A34",h3:"#D69A2E",h4:"#E0722A",h5:"#B23018"},
+    onacc:"#12161B",cell:["#232A31","#8C7A34","#B23018"],
+    heat:[[0,"#20262D"],[.22,"#38433E"],[.42,"#7C6B2E"],[.62,"#C79A34"],[.80,"#E0722A"],[1,"#B23018"]],
+    p:{font:"#ECE3D0",land:"#1A2027",ocean:"#12161B",country:"#252C34",border:"#12161B",grid:"#2C353F",tick:"#8A94A0",tick2:"#657080",accent:"#F3C34C",accent2:"#8FA96E"}},
+  porcelain:{label:"Porcelain",mode:"light",
+    css:{ink:"#F2EEE4",panel:"#FBF9F3",panel2:"#F0EBDF",line:"#E0D8C8",paper:"#2C2622",muted:"#7A7266",muted2:"#A59C8C",
+      saffron:"#B4791F",amber:"#C8621E",paprika:"#B4471F",chili:"#8E2A16",sage:"#6E8A55",
+      h0:"#EAD9A8",h1:"#E3B96A",h2:"#D98F33",h3:"#C86A26",h4:"#A8401C",h5:"#7C230F"},
+    onacc:"#FBF9F3",cell:["#EFE7D6","#DA9A3C","#8E2A16"],
+    heat:[[0,"#EFE7D6"],[.28,"#E8C77E"],[.5,"#DA9A3C"],[.72,"#C4632A"],[1,"#8E2A16"]],
+    p:{font:"#2C2622",land:"#E9E2D3",ocean:"#F6F3EC",country:"#DAD1C0",border:"#D6CCB9",grid:"#E0D8C8",tick:"#7A7266",tick2:"#A59C8C",accent:"#B4791F",accent2:"#6E8A55"}},
+  matcha:{label:"Matcha",mode:"light",
+    css:{ink:"#EDF0E4",panel:"#F5F7EE",panel2:"#E7EBDB",line:"#D3DAC2",paper:"#232B1E",muted:"#6E7A5E",muted2:"#9AA487",
+      saffron:"#5E8A46",amber:"#B98A2E",paprika:"#C4632A",chili:"#8E2A16",sage:"#7A9A5A",
+      h0:"#C9D3A8",h1:"#AEBE6E",h2:"#C7A23E",h3:"#CE7A2A",h4:"#B5451F",h5:"#8E2A16"},
+    onacc:"#F5F7EE",cell:["#DCE4C6","#C7A23E","#8E2A16"],
+    heat:[[0,"#DCE4C6"],[.3,"#B7C57E"],[.5,"#C9A33E"],[.72,"#C4632A"],[1,"#8E2A16"]],
+    p:{font:"#232B1E",land:"#E3E8D2",ocean:"#EFF2E7",country:"#CBD3B6",border:"#CBD3B6",grid:"#D3DAC2",tick:"#6E7A5E",tick2:"#9AA487",accent:"#5E8A46",accent2:"#B98A2E"}},
+  merlot:{label:"Merlot",mode:"dark",
+    css:{ink:"#1B1116",panel:"#271821",panel2:"#2F1E28",line:"#3E2A34",paper:"#EFE2E6",muted:"#A88F98",muted2:"#7C636E",
+      saffron:"#D8A24B",amber:"#D98A3E",paprika:"#C0623F",chili:"#7C1F2A",sage:"#C46B7A",
+      h0:"#2F1B27",h1:"#5A2436",h2:"#8E2F44",h3:"#C0623F",h4:"#D98A3E",h5:"#E3AE45"},
+    onacc:"#1B1116",cell:["#241521","#8A2E43","#E3AE45"],
+    heat:[[0,"#241521"],[.26,"#4E2233"],[.5,"#8A2E43"],[.74,"#C05A34"],[1,"#E3AE45"]],
+    p:{font:"#EFE2E6",land:"#271821",ocean:"#1B1116",country:"#3A2530",border:"#1B1116",grid:"#3E2A34",tick:"#A88F98",tick2:"#7C636E",accent:"#D8A24B",accent2:"#C46B7A"}},
+  espresso:{label:"Espresso",mode:"dark",
+    css:{ink:"#17120E",panel:"#211913",panel2:"#29201A",line:"#3A2E24",paper:"#EDE3D2",muted:"#A8977F",muted2:"#7C6C58",
+      saffron:"#D8A25A",amber:"#C87F3C",paprika:"#B5652E",chili:"#9A3B1E",sage:"#A79A6E",
+      h0:"#2A1E14",h1:"#4A3320",h2:"#7C5628",h3:"#B67C33",h4:"#D29A45",h5:"#E3B15A"},
+    onacc:"#17120E",cell:["#241A12","#7C5628","#E3B15A"],
+    heat:[[0,"#241A12"],[.28,"#4A3320"],[.5,"#7C5628"],[.72,"#B67C33"],[1,"#E3B15A"]],
+    p:{font:"#EDE3D2",land:"#211913",ocean:"#17120E",country:"#33271D",border:"#17120E",grid:"#3A2E24",tick:"#A8977F",tick2:"#7C6C58",accent:"#D8A25A",accent2:"#C87F3C"}}
+};
+let TP=THEMES.saffron.p, curTheme="saffron";
+const BL=()=>({paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+  font:{family:"Inter, sans-serif",color:TP.font},margin:{l:0,r:0,t:0,b:0}});
 const CONFIG={displayModeBar:false,responsive:true};
+const MAPCONFIG={displayModeBar:false,responsive:true,scrollZoom:true};
+const geoOf=()=>({bgcolor:"rgba(0,0,0,0)",showframe:false,showcoastlines:false,
+  showland:true,landcolor:TP.land,showcountries:true,countrycolor:TP.country,
+  showocean:true,oceancolor:TP.ocean,projection:{type:"natural earth"},lataxis:{range:[-56,80]}});
 
 /* ===================== MAP ===================== */
 let current="Thailand";
@@ -505,20 +582,17 @@ function drawMap(){
   const z=names.map((_,k)=>aff(i,k));
   const data=[{
     type:"choropleth",locationmode:"country names",locations:names,z,
-    zmin:0,zmax:100,colorscale:HEAT,
-    marker:{line:{color:"#12161B",width:.6}},
-    colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:"#8A94A0"}},
-      thickness:10,len:.7,x:.98,tickfont:{family:MONO,size:10,color:"#8A94A0"},outlinewidth:0},
+    zmin:0,zmax:100,colorscale:TP.heat,
+    marker:{line:{color:TP.border,width:.6}},
+    colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:TP.tick}},
+      thickness:10,len:.7,x:.98,tickfont:{family:MONO,size:10,color:TP.tick},outlinewidth:0},
     hovertemplate:"<b>%{location}</b><br>affinity %{z}<extra></extra>"
   }];
-  const layout={...baseLayout,
-    geo:{bgcolor:"rgba(0,0,0,0)",showframe:false,showcoastlines:false,
-      showland:true,landcolor:"#1A2027",showcountries:true,countrycolor:"#252c34",
-      showocean:true,oceancolor:"#12161B",
-      projection:{type:"natural earth"},lataxis:{range:[-56,80]}},
-    margin:{l:0,r:0,t:6,b:0}};
-  Plotly.react("map",data,layout,CONFIG);
-  document.getElementById("map").on("plotly_click",ev=>{
+  const layout={...BL(),geo:geoOf(),margin:{l:0,r:0,t:6,b:0}};
+  Plotly.react("map",data,layout,MAPCONFIG);
+  const gd=document.getElementById("map");
+  if(gd.removeAllListeners)gd.removeAllListeners("plotly_click");
+  gd.on("plotly_click",ev=>{
     const loc=ev.points&&ev.points[0]&&ev.points[0].location;
     if(loc&&names.includes(loc)){setRef(loc);}
   });
@@ -557,12 +631,12 @@ function drawRadar(){
   const mk=(nm,col,fill)=>{const v=radarVals(nm);return{type:"scatterpolar",r:v.concat(v[0]),theta,
     name:nm,mode:"lines",line:{color:col,width:2},fill:"toself",fillcolor:fill,
     hovertemplate:"%{theta}: %{r}/10<extra>"+nm+"</extra>"};};
-  const data=[mk(nb,"#8FA96E","rgba(143,169,110,.14)"),mk(current,"#F3C34C","rgba(243,195,76,.20)")];
-  const layout={...baseLayout,showlegend:true,
-    legend:{orientation:"h",y:-.08,x:.5,xanchor:"center",font:{size:12}},
+  const data=[mk(nb,TP.accent2,hexA(TP.accent2,.14)),mk(current,TP.accent,hexA(TP.accent,.22))];
+  const layout={...BL(),showlegend:true,
+    legend:{orientation:"h",y:-.08,x:.5,xanchor:"center",font:{size:12,color:TP.font}},
     polar:{bgcolor:"rgba(0,0,0,0)",
-      radialaxis:{range:[0,10],gridcolor:"#2C353F",tickfont:{family:MONO,size:9,color:"#657080"},angle:90,tickangle:90},
-      angularaxis:{gridcolor:"#2C353F",tickfont:{size:11,color:"#8A94A0"}}},
+      radialaxis:{range:[0,10],gridcolor:TP.grid,tickfont:{family:MONO,size:9,color:TP.tick2},angle:90,tickangle:90},
+      angularaxis:{gridcolor:TP.grid,tickfont:{size:11,color:TP.tick}}},
     margin:{l:36,r:36,t:20,b:44}};
   Plotly.react("radar",data,layout,CONFIG);
 }
@@ -586,11 +660,11 @@ function drawMDS(){
     return{type:"scatter",mode:"markers+text",name:ci.name,
       x:idx.map(i=>EMB.x[i]),y:idx.map(i=>EMB.y[i]),
       text:idx.map(i=>names[i]),textposition:"top center",
-      textfont:{size:10,color:"#8A94A0",family:"Inter"},
-      marker:{size:12,color:ci.color,line:{color:"#12161B",width:1.5},opacity:.95},
+      textfont:{size:10,color:TP.tick,family:"Inter"},
+      marker:{size:12,color:ci.color,line:{color:TP.border,width:1.5},opacity:.95},
       hovertemplate:"<b>%{text}</b><extra>"+ci.name+"</extra>"};
   });
-  const layout={...baseLayout,showlegend:false,
+  const layout={...BL(),showlegend:false,
     xaxis:{zeroline:false,showgrid:false,showticklabels:false,visible:false},
     yaxis:{zeroline:false,showgrid:false,showticklabels:false,visible:false,scaleanchor:"x"},
     margin:{l:10,r:10,t:10,b:10},hovermode:"closest"};
@@ -601,7 +675,6 @@ function drawMDS(){
 
 /* ===================== MATRIX ===================== */
 function drawMatrix(){
-  // order by cluster, then within cluster by embedding x
   let order=[];
   clusterInfo.forEach(ci=>{
     const idx=[...Array(n).keys()].filter(i=>assign[i]===ci.c).sort((a,b)=>EMB.x[a]-EMB.x[b]);
@@ -609,14 +682,13 @@ function drawMatrix(){
   });
   const labels=order.map(i=>names[i]);
   const z=order.map(i=>order.map(k=>aff(i,k)));
-  const data=[{type:"heatmap",z,x:labels,y:labels,colorscale:HEAT,zmin:0,zmax:100,
-    xgap:1,ygap:1,
-    colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:"#8A94A0"}},
-      thickness:10,len:.6,tickfont:{family:MONO,size:10,color:"#8A94A0"},outlinewidth:0},
+  const data=[{type:"heatmap",z,x:labels,y:labels,colorscale:TP.heat,zmin:0,zmax:100,xgap:1,ygap:1,
+    colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:TP.tick}},
+      thickness:10,len:.6,tickfont:{family:MONO,size:10,color:TP.tick},outlinewidth:0},
     hovertemplate:"%{y} ↔ %{x}<br>affinity %{z}<extra></extra>"}];
-  const layout={...baseLayout,
-    xaxis:{tickfont:{size:9,color:"#8A94A0"},tickangle:-60,side:"bottom",showgrid:false,constrain:"domain"},
-    yaxis:{tickfont:{size:9,color:"#8A94A0"},autorange:"reversed",showgrid:false,scaleanchor:"x",constrain:"domain"},
+  const layout={...BL(),
+    xaxis:{tickfont:{size:9,color:TP.tick},tickangle:-60,side:"bottom",showgrid:false,constrain:"domain"},
+    yaxis:{tickfont:{size:9,color:TP.tick},autorange:"reversed",showgrid:false,scaleanchor:"x",constrain:"domain"},
     margin:{l:96,r:10,t:10,b:96}};
   Plotly.react("matrix",data,layout,CONFIG);
 }
@@ -631,25 +703,26 @@ function buildSelect(){
   sel.value=current;
   sel.addEventListener("change",e=>setRef(e.target.value));
 }
-buildSelect();drawMap();drawBars();drawRadar();drawClusters();drawMDS();drawMatrix();
 
-/* ===================== METHOD TAB: DATA TABLE + TABS ===================== */
+/* ===================== DATA TABLE (theme-aware) ===================== */
 const HEAD=[["heat","Heat"],["spice","Spice"],["sour","Sour"],["sweet","Swt"],["umami","Umami"],["herbs","Herb"],["dairy","Dairy"],["oil","Oil"],["rice","Rice"],["wheat","Wheat"],["noodle","Ndl"],["seafood","Sea"],["pork","Pork"],["redMeat","Meat"],["legume","Leg"],["grill","Grill"],["stew","Stew"],["fry","Fry"],["raw","Raw"]];
 function heatCell(v){
   const t=Math.max(0,Math.min(1,v/10));
-  const A=[0x23,0x2a,0x31],B=[0x8c,0x7a,0x34],C=[0xb2,0x30,0x18];
+  const A=hx(THEMES[curTheme].cell[0]),B=hx(THEMES[curTheme].cell[1]),C=hx(THEMES[curTheme].cell[2]);
   let a,b,lt; if(t<=.5){a=A;b=B;lt=t/.5;}else{a=B;b=C;lt=(t-.5)/.5;}
-  return "rgb("+a.map((x,i)=>Math.round(x+(b[i]-x)*lt)).join(",")+")";
+  const rgb=a.map((x,i)=>Math.round(x+(b[i]-x)*lt));
+  return {bg:`rgb(${rgb.join(",")})`,fg:lum(rgb)>150?"#1B1512":"#F2ECDD"};
 }
 function buildDataTable(){
   const thead="<thead><tr><th>Cuisine</th><th>Region</th>"+
     HEAD.map(([k,s])=>`<th title="${AXLABEL[k]}">${s}</th>`).join("")+"</tr></thead>";
   const rows=D.map(([nm,rg,vals])=>{
-    const cells=vals.map(v=>`<td class="v" style="background:${heatCell(v)};color:${v>=4?"#ECE3D0":"#AEB6C0"}">${v}</td>`).join("");
+    const cells=vals.map(v=>{const c=heatCell(v);return `<td class="v" style="background:${c.bg};color:${c.fg}">${v}</td>`;}).join("");
     return `<tr><td class="name">${nm}</td><td class="reg">${rg}</td>${cells}</tr>`;
   }).join("");
   document.getElementById("dataTable").innerHTML=thead+"<tbody>"+rows+"</tbody>";
 }
+
 /* ===================== SIGNATURE DISHES ===================== */
 const DISHES={
 "Italy":["Pizza Margherita","🍕","Naples-born flatbread with tomato, mozzarella and basil."],
@@ -699,20 +772,20 @@ const clusterNameOf=country=>clusterInfo.find(x=>x.c===assign[names.indexOf(coun
 const clusterColorOf=country=>CLCOLORS[assign[names.indexOf(country)]];
 
 function drawDishMap(){
+  if(typeof Plotly==="undefined")return;
   const base={type:"choropleth",locationmode:"country names",locations:names,
     z:names.map(nm=>assign[names.indexOf(nm)]),zmin:-0.5,zmax:K-0.5,
-    colorscale:DISHSCALE,showscale:false,marker:{line:{color:"#12161B",width:.6}},
+    colorscale:DISHSCALE,showscale:false,marker:{line:{color:TP.border,width:.6}},
     customdata:names.map(nm=>DISHES[nm][0]),
     hovertemplate:"<b>%{location}</b><br>%{customdata}<extra></extra>"};
   const sel={type:"choropleth",locationmode:"country names",locations:[dishSel],z:[1],
-    zmin:0,zmax:1,colorscale:[[0,"#F3C34C"],[1,"#F3C34C"]],showscale:false,
-    marker:{line:{color:"#F3C34C",width:2.2}},hoverinfo:"skip"};
-  const layout={...baseLayout,
-    geo:{bgcolor:"rgba(0,0,0,0)",showframe:false,showcoastlines:false,showland:true,landcolor:"#1A2027",
-      showcountries:true,countrycolor:"#252c34",showocean:true,oceancolor:"#12161B",
-      projection:{type:"natural earth"},lataxis:{range:[-56,80]}},margin:{l:0,r:0,t:6,b:0}};
-  Plotly.react("dishmap",[base,sel],layout,CONFIG);
-  document.getElementById("dishmap").on("plotly_click",ev=>{
+    zmin:0,zmax:1,colorscale:[[0,TP.accent],[1,TP.accent]],showscale:false,
+    marker:{line:{color:TP.accent,width:2.2}},hoverinfo:"skip"};
+  const layout={...BL(),geo:geoOf(),margin:{l:0,r:0,t:6,b:0}};
+  Plotly.react("dishmap",[base,sel],layout,MAPCONFIG);
+  const gd=document.getElementById("dishmap");
+  if(gd.removeAllListeners)gd.removeAllListeners("plotly_click");
+  gd.on("plotly_click",ev=>{
     const loc=ev.points&&ev.points[0]&&ev.points[0].location;
     if(loc&&DISHES[loc])selectDish(loc);
   });
@@ -745,6 +818,7 @@ function buildDishLegend(){
     `<span><i style="background:${ci.color}"></i>${ci.name}</span>`).join("");
 }
 
+/* ===================== TABS ===================== */
 function showTab(id){
   document.querySelectorAll(".tabpane").forEach(p=>p.hidden=(p.id!==id));
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.tab===id));
@@ -752,11 +826,69 @@ function showTab(id){
   if(id==="tab-dishes"){if(!dishMapDrawn)drawDishMap();else{const el=document.getElementById("dishmap");if(el&&el.data)try{Plotly.Plots.resize(el);}catch(e){}}}
   window.scrollTo(0,0);
 }
-document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>showTab(t.dataset.tab)));
-buildDataTable();
-buildDishGrid();
-buildDishLegend();
+
+/* ===================== THEME ENGINE ===================== */
+function setThemeTokens(key){
+  const t=THEMES[key]||THEMES.saffron; curTheme=THEMES[key]?key:"saffron";
+  const r=document.documentElement.style;
+  Object.entries(t.css).forEach(([k,v])=>r.setProperty("--"+k,v));
+  r.setProperty("--bar",hexA(t.css.ink,.85));
+  r.setProperty("--onacc",t.onacc);
+  document.documentElement.dataset.theme=curTheme;
+  document.documentElement.style.colorScheme=t.mode;
+  TP=t.p;
+  updateThemeUI();
+}
+function redrawAll(){
+  buildDataTable();
+  if(typeof Plotly==="undefined")return;
+  drawMap();drawBars();drawRadar();drawMDS();drawMatrix();
+  if(dishMapDrawn)drawDishMap();
+}
+function applyTheme(key){setThemeTokens(key);redrawAll();saveTheme(key);}
+function saveTheme(k){try{localStorage.setItem("atlasTheme",k);}catch(e){}}
+function loadTheme(){try{return localStorage.getItem("atlasTheme");}catch(e){return null;}}
+function swatch(t){return `linear-gradient(135deg,${t.cell[0]},${t.cell[1]},${t.cell[2]})`;}
+function buildThemeMenu(){
+  const menu=document.getElementById("thememenu");
+  menu.innerHTML=Object.entries(THEMES).map(([k,t])=>
+    `<button class="titem" data-k="${k}" role="menuitem"><span class="sw" style="background:${swatch(t)}"></span>${t.label}<span class="mode">${t.mode}</span></button>`).join("");
+  menu.querySelectorAll(".titem").forEach(el=>el.addEventListener("click",()=>{applyTheme(el.dataset.k);closeThemeMenu();}));
+}
+function updateThemeUI(){
+  const sw=document.getElementById("themesw");
+  if(sw)sw.style.background=swatch(THEMES[curTheme]);
+  document.querySelectorAll(".titem").forEach(el=>el.classList.toggle("on",el.dataset.k===curTheme));
+}
+const themebtn=document.getElementById("themebtn"),thememenu=document.getElementById("thememenu");
+function closeThemeMenu(){thememenu.classList.remove("open");themebtn.setAttribute("aria-expanded","false");}
+themebtn.addEventListener("click",e=>{e.stopPropagation();const o=thememenu.classList.toggle("open");themebtn.setAttribute("aria-expanded",o);});
+document.addEventListener("click",e=>{if(!thememenu.contains(e.target)&&e.target!==themebtn&&!themebtn.contains(e.target))closeThemeMenu();});
+
+/* ===================== INIT ===================== */
+buildThemeMenu();
+setThemeTokens(loadTheme()||"saffron");
+buildSelect();
+drawClusters();
+buildDataTable();buildDishGrid();buildDishLegend();
 selectDish(dishSel);
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>showTab(t.dataset.tab)));
+
+/* wait for the chart library, then draw everything that needs it */
+(function boot(tries){
+  if(typeof Plotly!=="undefined"){
+    drawMap();drawBars();drawRadar();drawMDS();drawMatrix();
+    return;
+  }
+  if(tries>150){
+    ["map","radar","mds","matrix"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.innerHTML='<div class="loaderr">Couldn\u2019t load the chart library — check your connection and refresh the page.</div>';
+    });
+    return;
+  }
+  setTimeout(()=>boot(tries+1),100);
+})(0);
 </script>
 </body>
 </html>
