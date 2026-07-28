@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Alloy Atlas — Chemical Composition Cartography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js" charset="utf-8"
+  onerror="(function(){var s=document.createElement('script');s.src='https://cdn.plot.ly/plotly-2.35.2.min.js';document.head.appendChild(s);})()"></script>
+<style>
+  :root{
+    --ink:#12161B; --panel:#1A2027; --panel2:#20272F; --line:#2C353F;
+    --paper:#ECE3D0; --muted:#8A94A0; --muted2:#657080;
+    --saffron:#F3C34C; --amber:#E68A2E; --paprika:#CE5A2A; --chili:#B23018; --sage:#8FA96E;
+    --h0:#20262D; --h1:#3E4A44; --h2:#8C7A34; --h3:#D69A2E; --h4:#E0722A; --h5:#B23018;
+    --bar:rgba(18,22,27,.85); --onacc:#12161B;
+  }
+  html{transition:background .3s ease}
+  body,.card,.topbar,.tabs,.cl-card,.sig-card,.pt-cell{transition:background .3s ease,border-color .3s ease,color .3s ease}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);
+    font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{background:
+    radial-gradient(1200px 700px at 78% -8%, rgba(243,195,76,.06), transparent 60%),
+    radial-gradient(900px 600px at 10% 4%, rgba(178,48,24,.05), transparent 55%),
+    var(--ink);}
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:18px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:var(--bar);backdrop-filter:blur(8px);z-index:20}
+  .mark{font-family:"Fraunces",serif;font-weight:600;font-size:19px;letter-spacing:.2px;display:flex;align-items:center;gap:10px}
+  .mark .dot{width:11px;height:11px;border-radius:50%;
+    background:conic-gradient(from 210deg,var(--h5),var(--h4),var(--h3),var(--saffron),var(--h5));
+    box-shadow:0 0 0 3px rgba(243,195,76,.12)}
+  .chip{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:5px 11px;letter-spacing:.4px}
+  .byline{display:flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;
+    font-size:12px;color:var(--muted);letter-spacing:.3px}
+  .byline b{color:var(--paper);font-weight:500}
+  .chaticon{display:inline-block;vertical-align:middle;transform:translateY(1px)}
+  .chaticon .bub{fill:var(--saffron)}
+  .themebar{position:relative}
+  .themebtn{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);
+    color:var(--paper);border-radius:999px;padding:6px 12px 6px 8px;cursor:pointer;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.3px}
+  .themebtn:hover{border-color:var(--amber)}
+  .sw{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.18);flex:none}
+  .thememenu{position:absolute;right:0;top:calc(100% + 8px);background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:6px;min-width:196px;display:none;flex-direction:column;gap:2px;z-index:40;
+    box-shadow:0 20px 54px -22px rgba(0,0,0,.6)}
+  .thememenu.open{display:flex}
+  .titem{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--paper);
+    padding:9px 10px;border-radius:10px;cursor:pointer;font-family:"Inter",sans-serif;font-size:13.5px;text-align:left;width:100%}
+  .titem:hover,.titem.on{background:var(--panel2)}
+  .titem .mode{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.5px}
+  @media(max-width:780px){.topbar .chip{display:none}}
+  @media(max-width:480px){.byline{font-size:11px;gap:5px}.byline .aiw{display:none}}
+
+  /* hero */
+  .hero{padding:56px 0 26px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:3.5px;
+    color:var(--amber);text-transform:uppercase;margin-bottom:18px}
+  h1{font-family:"Fraunces",serif;font-weight:500;line-height:1.02;margin:0;
+    font-size:clamp(38px,6.4vw,74px);letter-spacing:-.5px}
+  h1 em{font-style:italic;color:var(--saffron)}
+  .lede{max-width:660px;margin:20px 0 0;color:var(--muted);font-size:17px;line-height:1.6}
+  .stats{display:flex;gap:28px;flex-wrap:wrap;margin-top:26px}
+  .stat b{font-family:"IBM Plex Mono",monospace;font-size:22px;color:var(--paper);display:block;font-weight:500}
+  .stat span{font-size:12px;color:var(--muted);letter-spacing:.4px}
+
+  /* controls */
+  .controls{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;
+    margin:34px 0 14px;padding:18px 20px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .ctl-label{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:1.4px;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  select{appearance:none;background:var(--panel2);color:var(--paper);border:1px solid var(--line);
+    border-radius:10px;padding:11px 38px 11px 14px;font-family:"Inter";font-size:15px;min-width:230px;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%238A94A0' stroke-width='1.5' fill='none'/></svg>");
+    background-repeat:no-repeat;background-position:right 14px center}
+  select:focus-visible,button:focus-visible,.pt-cell:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+  .hint{color:var(--muted2);font-size:13px;padding-bottom:11px;max-width:520px;line-height:1.5}
+  .hint b{color:var(--amber);font-weight:500}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel2)}
+  .seg button{background:none;border:0;color:var(--muted);padding:11px 15px;cursor:pointer;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.3px}
+  .seg button.on{background:var(--saffron);color:var(--onacc);font-weight:500}
+
+  /* sections */
+  section{padding:26px 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:6px 0 18px;flex-wrap:wrap}
+  .sec-head h2{font-family:"Fraunces",serif;font-weight:500;font-size:26px;margin:0;letter-spacing:-.2px}
+  .sec-head .n{font-family:"IBM Plex Mono",monospace;color:var(--amber);font-size:13px}
+  .sec-head p{margin:0;color:var(--muted);font-size:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .plot{width:100%}
+  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+
+  /* ===== periodic table (the map) ===== */
+  .pt{display:grid;grid-template-columns:repeat(18,1fr);gap:4px;padding:4px 2px}
+  .pt-ghost{aspect-ratio:1;border-radius:5px;border:1px dashed var(--line);opacity:.35}
+  .pt-cell{aspect-ratio:1;border-radius:5px;border:1px solid var(--line);background:var(--panel2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+    cursor:pointer;color:var(--paper);font-family:inherit;padding:0;position:relative;overflow:hidden}
+  .pt-cell .sym{font-family:"Fraunces",serif;font-size:clamp(9px,1.15vw,17px);line-height:1;font-weight:500}
+  .pt-cell .val{font-family:"IBM Plex Mono",monospace;font-size:clamp(6px,.62vw,9.5px);line-height:1.1;opacity:.85}
+  .pt-cell.off{opacity:.34}
+  .pt-cell.hi{box-shadow:0 0 0 2px var(--saffron) inset}
+  .pt-legend{display:flex;align-items:center;gap:10px;margin-top:14px;font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+  .pt-legend .grad{height:10px;width:170px;border-radius:5px}
+  .pt-caption{font-size:13px;color:var(--muted);margin:14px 2px 0;line-height:1.55}
+  .pt-caption b{color:var(--paper);font-weight:500}
+
+  /* ===== composition ribbons ===== */
+  .rib{display:flex;flex-direction:column;gap:12px}
+  .rib-row{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;cursor:pointer}
+  .rib-row .rn{font-size:13px;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rib-row .rn i{display:block;font-style:normal;font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px;color:var(--muted2);letter-spacing:.3px}
+  .rib-row:hover .rn{color:var(--saffron)}
+  .rib-row.on .rn{color:var(--saffron);font-weight:500}
+  .rib-bar{display:flex;height:30px;border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+  .rib-seg{display:flex;align-items:center;justify-content:center;min-width:0;
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.2px;white-space:nowrap;overflow:hidden}
+  @media(max-width:640px){.rib-row{grid-template-columns:100px 1fr;gap:9px}.rib-bar{height:26px}}
+
+  /* ranked bars */
+  .ranktitle{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;gap:10px}
+  .ranktitle .who{font-family:"Fraunces",serif;font-size:20px}
+  .ranktitle .who b{color:var(--saffron);font-weight:500}
+  .bars{display:flex;flex-direction:column;gap:9px}
+  .bar-row{display:grid;grid-template-columns:150px 1fr 42px;align-items:center;gap:12px;cursor:pointer}
+  .bar-row .nm{font-size:13.5px;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-row .track{height:16px;background:var(--panel2);border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.03)}
+  .bar-row .fill{height:100%;border-radius:6px;
+    background:linear-gradient(90deg,#5a4a1e,var(--h3),var(--h4),var(--chili))}
+  .bar-row .sc{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);text-align:right}
+  .bar-row:hover .nm{color:var(--saffron)}
+  @media(max-width:640px){.bar-row{grid-template-columns:112px 1fr 38px}}
+  .distant{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px;color:var(--muted)}
+  .distant b{color:var(--paper);font-weight:500}
+  #radar{height:390px}
+
+  /* clusters */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:820px){.grid3{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid3{grid-template-columns:1fr}}
+  .cl-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;position:relative;overflow:hidden}
+  .cl-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)}
+  .cl-name{font-family:"Fraunces",serif;font-size:18px;margin:2px 0 3px}
+  .cl-reps{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+  .cl-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.3px;
+    padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--paper);background:var(--panel2)}
+  .cl-mem{font-size:12px;color:var(--muted2);line-height:1.5}
+  .cl-size{position:absolute;right:14px;top:12px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted)}
+
+  #mds{height:560px}
+  #matrix{height:700px}
+  #cooc{height:620px}
+  #scat{height:540px}
+  #valid{height:420px}
+  @media(max-width:640px){#matrix{height:480px}#cooc{height:440px}#mds{height:460px}#scat{height:440px}}
+  .leg{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+  .leg span{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+  .leg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  /* divergence panel */
+  .div-list{display:flex;flex-direction:column;gap:2px}
+  .div-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:baseline;
+    padding:11px 2px;border-bottom:1px solid var(--line)}
+  .div-row:last-child{border-bottom:0}
+  .div-row .a{font-size:14px;color:var(--paper)}
+  .div-row .a i{font-style:normal;color:var(--muted2)}
+  .div-row .b{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+  .div-row .b em{font-style:normal;color:var(--amber)}
+
+  footer{border-top:1px solid var(--line);margin-top:30px;padding:30px 0 60px;color:var(--muted);font-size:13.5px;line-height:1.7}
+  footer b{color:var(--paper);font-weight:500}
+  .copyright{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.2px;color:var(--muted2)}
+  .method{max-width:780px}
+  ::selection{background:rgba(243,195,76,.28)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* tabs */
+  .tabs{position:sticky;top:56px;z-index:15;display:flex;flex-wrap:wrap;gap:6px;padding:10px 22px;
+    background:var(--bar);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .tab{font-family:"IBM Plex Mono",monospace;font-size:12.5px;letter-spacing:.4px;color:var(--muted);
+    background:none;border:1px solid transparent;border-radius:999px;padding:8px 16px;cursor:pointer;
+    transition:color .15s,background .15s}
+  .tab:hover{color:var(--paper)}
+  .tab.on{color:var(--onacc);background:var(--saffron);font-weight:500}
+  .tabpane[hidden]{display:none}
+
+  /* method + data table */
+  .method-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:6px 0 30px}
+  @media(max-width:820px){.method-grid{grid-template-columns:1fr}}
+  ol.steps{counter-reset:s;list-style:none;margin:6px 0 0;padding:0}
+  ol.steps li{counter-increment:s;position:relative;padding:9px 0 9px 42px;
+    border-bottom:1px solid var(--line);font-size:14px;color:var(--paper);line-height:1.5}
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:9px;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--amber)}
+  ol.steps li b{font-family:"Fraunces",serif;font-weight:500;color:var(--paper)}
+  .prose{font-size:14px;line-height:1.65;color:var(--muted);margin:6px 0 0}
+  .prose b{color:var(--paper);font-weight:500}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel);max-height:640px}
+  table.data{border-collapse:collapse;width:100%;font-size:12px}
+  table.data th,table.data td{padding:5px 6px;text-align:center;white-space:nowrap}
+  table.data thead th{position:sticky;top:0;background:var(--panel2);color:var(--muted);
+    font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:10.5px;letter-spacing:.3px;
+    border-bottom:1px solid var(--line);z-index:2}
+  table.data thead th:first-child{left:0;z-index:4;text-align:left}
+  table.data td.name{text-align:left;font-weight:500;color:var(--paper);position:sticky;left:0;
+    background:var(--panel);z-index:1}
+  table.data td.reg{text-align:left;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px}
+  table.data td.v{font-family:"IBM Plex Mono",monospace}
+  table.data td.zero{color:var(--muted2);opacity:.32}
+  table.data tbody tr:hover td{outline:1px solid rgba(243,195,76,.22)}
+  .scalekey{display:flex;align-items:center;gap:9px;margin:14px 2px 0;font-size:12px;color:var(--muted);
+    font-family:"IBM Plex Mono",monospace;flex-wrap:wrap}
+  .scalekey .grad{height:10px;width:180px;border-radius:5px;
+    background:linear-gradient(90deg,#232a31,#8C7A34,#B23018)}
+
+  /* signature element */
+  .sig-hero{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;align-items:stretch}
+  @media(max-width:820px){.sig-hero{grid-template-columns:1fr}}
+  .sig-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    min-height:420px;gap:0;padding:26px}
+  .sig-tile{width:132px;height:132px;border-radius:16px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 14px 40px -18px rgba(0,0,0,.7)}
+  .sig-tile .z{font-family:"IBM Plex Mono",monospace;font-size:11px;opacity:.75;letter-spacing:.5px}
+  .sig-tile .s{font-family:"Fraunces",serif;font-size:52px;line-height:1.05;font-weight:500}
+  .sig-tile .m{font-family:"IBM Plex Mono",monospace;font-size:10.5px;opacity:.75}
+  .sig-alloy{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:2px;
+    text-transform:uppercase;color:var(--amber);margin-top:22px}
+  .sig-el{font-family:"Fraunces",serif;font-size:30px;color:var(--paper);line-height:1.12;margin-top:4px}
+  .sig-desc{color:var(--muted);font-size:14.5px;max-width:390px;line-height:1.6;margin-top:8px}
+  .sig-lift{margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+    padding:6px 13px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .sig-lift b{color:var(--saffron);font-weight:500}
+  .sig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+  @media(max-width:900px){.sig-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:620px){.sig-grid{grid-template-columns:repeat(2,1fr)}}
+  .sig-card{display:flex;align-items:center;gap:11px;text-align:left;
+    background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 12px;cursor:pointer;
+    color:var(--paper);font-family:inherit;transition:border-color .15s,transform .12s,background .15s}
+  .sig-card:hover{border-color:var(--amber);transform:translateY(-2px)}
+  .sig-card.on{border-color:var(--saffron);background:var(--panel2);box-shadow:0 0 0 1px var(--saffron) inset}
+  .sig-card .mini{width:34px;height:34px;flex:none;border-radius:8px;display:flex;align-items:center;
+    justify-content:center;font-family:"Fraunces",serif;font-size:16px;font-weight:500;
+    border:1px solid rgba(255,255,255,.12)}
+  .sig-card .txt{min-width:0}
+  .sig-card .an{font-size:12.5px;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sig-card .ac{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);letter-spacing:.3px}
+  .loaderr{display:flex;align-items:center;justify-content:center;height:100%;min-height:180px;
+    padding:24px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+
+  /* notebook */
+  .nb-actions{display:flex;gap:12px;align-items:center;margin:2px 0 22px;flex-wrap:wrap}
+  .dlbtn{display:inline-flex;align-items:center;gap:8px;background:var(--saffron);color:var(--onacc);
+    border:0;border-radius:10px;padding:11px 16px;font-family:"IBM Plex Mono",monospace;font-size:13px;
+    font-weight:500;cursor:pointer;letter-spacing:.3px}
+  .dlbtn:hover{filter:brightness(1.06)}
+  .nb-note{color:var(--muted);font-size:12.5px}
+  .nb-md{color:var(--paper);font-size:14.5px;line-height:1.62;margin:16px 2px}
+  .nb-md h2{font-family:"Fraunces",serif;font-weight:500;font-size:23px;margin:8px 0 4px}
+  .nb-md h3{font-family:"Fraunces",serif;font-weight:500;font-size:18px;margin:4px 0}
+  .nb-md p{margin:6px 0;color:var(--muted)}
+  .nb-md strong{color:var(--paper);font-weight:600}
+  .nb-md code{background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;
+    font-family:"IBM Plex Mono",monospace;font-size:.88em;color:var(--paper)}
+  .nb-md blockquote{border-left:3px solid var(--amber);margin:8px 0;padding:3px 0 3px 14px;
+    color:var(--muted);font-size:13.5px}
+  .nb-md hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+  .nb-md li{color:var(--muted);margin:3px 0}
+  .nb-code{display:grid;grid-template-columns:58px 1fr;margin:10px 0;border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;background:var(--panel)}
+  .nb-prompt{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted2);padding:13px 8px;
+    text-align:right;background:var(--panel2);border-right:1px solid var(--line);user-select:none}
+  .nb-code pre{margin:0;padding:13px 15px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px;line-height:1.55;color:var(--paper);white-space:pre;tab-size:4}
+  .nb-code .k{color:var(--amber)}
+  .nb-code .s{color:var(--sage)}
+  .nb-code .c{color:var(--muted2);font-style:italic}
+  .nb-code .nu{color:var(--paprika)}
+</style>
+</head>
+<style>
+  /* provenance badges */
+  .bdg{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.4px;padding:2px 7px;
+    border-radius:999px;border:1px solid var(--line);white-space:nowrap;display:inline-block}
+  .bdg.tA{color:var(--sage);border-color:color-mix(in srgb,var(--sage) 45%,transparent)}
+  .bdg.tB{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)}
+  .bdg.tC{color:var(--muted2)}
+  .bdg.ok{background:var(--sage);color:var(--ink);border-color:var(--sage);font-weight:500}
+  .bdg.cand{color:var(--muted2);border-style:dashed}
+  .cand-row{opacity:.62}
+  .src-tbl td.s{text-align:left;font-size:11.5px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+  .src-tbl td.s a{color:var(--saffron)}
+  .warnbox{border:1px solid color-mix(in srgb,var(--amber) 40%,var(--line));
+    background:color-mix(in srgb,var(--amber) 7%,var(--panel));border-radius:14px;padding:16px 18px;
+    font-size:13.5px;line-height:1.6;color:var(--muted);margin:20px 0}
+  .warnbox b{color:var(--paper);font-weight:500}
+  .warnbox .h{font-family:"Fraunces",serif;font-size:17px;color:var(--paper);display:block;margin-bottom:6px}
+  .filterbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 6px}
+</style>
+<body>
+<div class="topbar">
+  <div class="mark"><span class="dot"></span>The Alloy Atlas</div>
+  <div class="byline">by <b>A.&nbsp;Alper&nbsp;Kunt</b>
+    <svg class="chaticon" width="19" height="19" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="bub" d="M5 3h14a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-5.5l-4.8 3.8A.7.7 0 0 1 7.5 22V19H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/>
+      <circle cx="9.3" cy="9.6" r="1.25" fill="#12161B"/><circle cx="14.7" cy="9.6" r="1.25" fill="#12161B"/>
+      <path d="M9 12.4c1.6 1.7 4.4 1.7 6 0" fill="none" stroke="#12161B" stroke-width="1.4" stroke-linecap="round"/>
+    </svg><span class="aiw">with AI</span></div>
+  <div class="themebar">
+    <button class="themebtn" id="themebtn" aria-haspopup="true" aria-expanded="false">
+      <span class="sw" id="themesw"></span><span class="tlbl">Theme</span></button>
+    <div class="thememenu" id="thememenu" role="menu"></div>
+  </div>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button class="tab on" data-tab="tab-recipe" role="tab">Recipe</button>
+  <button class="tab" data-tab="tab-behave" role="tab">Behaviour</button>
+  <button class="tab" data-tab="tab-sources" role="tab">Sources &amp; Method</button>
+  <button class="tab" data-tab="tab-sig" role="tab">Signature Element</button>
+  <button class="tab" data-tab="tab-notebook" role="tab">Notebook</button>
+</nav>
+
+<div class="wrap">
+
+<div class="tabpane" id="tab-recipe">
+  <header class="hero">
+    <div class="eyebrow">Composition Cartography &middot; A personal alloy atlas</div>
+    <h1>Every alloy is a <em>recipe</em> written in elements.</h1>
+    <p class="lede">Strip an alloy down and what is left is a short list of elements and their weights. Stainless steel is iron with a fifth of it swapped for chromium; bronze is copper with a twentieth tin. This atlas reads each alloy as a thirty-one-element recipe and measures which recipes are really alike. Pick one &mdash; the periodic table lights up with what is inside it.</p>
+    <div class="stats">
+      <div class="stat"><b id="sN">&mdash;</b><span>ALLOYS</span></div>
+      <div class="stat"><b id="sV">&mdash;</b><span>SPEC RETRIEVED &amp; READ</span></div>
+      <div class="stat"><b id="sE">&mdash;</b><span>ELEMENTS IN PLAY</span></div>
+      <div class="stat"><b id="sP">&mdash;</b><span>PAIRWISE AFFINITIES</span></div>
+    </div>
+  </header>
+
+  <div class="warnbox">
+    <span class="h">Read the badges before the numbers.</span>
+    Only <b id="wV">&mdash;</b> of the <b id="wN">&mdash;</b> rows have had their specification retrieved and read; those carry a solid <span class="bdg ok">READ</span> badge. The rest carry <span class="bdg cand">candidate</span> &mdash; the designation is named and the composition is expected to resolve to it, but the source has not been opened yet. Candidates are shown faded everywhere they appear. They are not data. Use the toggle below to remove them and see the atlas on verified rows alone.
+  </div>
+
+  <div class="controls">
+    <div>
+      <div class="ctl-label">Reference alloy</div>
+      <select id="ref" aria-label="Choose a reference alloy"></select>
+    </div>
+    <div>
+      <div class="ctl-label">Periodic table mode</div>
+      <div class="seg" id="ptmode" role="group" aria-label="Periodic table mode">
+        <button data-m="one" class="on">this alloy</button><button data-m="all">all alloys at once</button>
+      </div>
+    </div>
+    <div>
+      <div class="ctl-label">Rows included</div>
+      <div class="seg" id="rowmode" role="group" aria-label="Row filter">
+        <button data-m="all" class="on">all</button><button data-m="ver">verified only</button>
+      </div>
+    </div>
+    <div class="hint">The periodic table <b>is</b> the map here, and it reads two ways. <b>This alloy</b> shades each cell by how much of that element the chosen alloy contains, on a log scale so a 0.08% carbon addition still registers beside a 69% base metal. <b>All alloys at once</b> drops the individual recipe and counts instead: how many of the fifty-three alloys contain each element at all. Tap any lit cell to jump to the alloy that holds the most of it.</div>
+  </div>
+
+  <section style="padding-top:6px">
+    <div class="sec-head"><span class="n">00</span><h2>The map</h2>
+      <p>The periodic table, shaded two different ways</p></div>
+    <div class="card">
+      <div class="ranktitle"><div class="who" id="ptTitle">&mdash;</div><div id="ptMeta"></div></div>
+      <div class="pt" id="pt"></div>
+      <div class="pt-legend"><span>low</span><i class="grad" id="ptgrad"></i><span>high</span><span id="ptScaleNote" style="margin-left:6px"></span></div>
+      <div class="pt-caption" id="ptCap"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">01</span><h2>The recipe, and its nearest kin</h2>
+      <p>Each bar is one alloy split by weight &middot; hover a band for the element</p></div>
+    <div class="card"><div class="rib" id="ribbons"></div></div>
+  </section>
+
+  <section>
+    <div class="grid2">
+      <div class="card">
+        <div class="ranktitle"><div class="who">Closest recipe to <b id="whoName">&mdash;</b></div>
+          <div class="chip">affinity 0&ndash;100</div></div>
+        <div class="bars" id="bars"></div><div class="distant" id="distant"></div>
+      </div>
+      <div class="card">
+        <div class="ranktitle"><div class="who">Recipe space, flattened</div></div>
+        <div id="mds" class="plot"></div><div class="leg" id="mdsleg"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">02</span><h2>The systems the compositions drew by themselves</h2></div>
+    <p style="margin:-6px 0 18px;color:var(--muted);font-size:14px;max-width:760px">
+      Nobody labelled these. A k&#8209;means clustering of the recipes splits the set into eight groups, and they land almost exactly on the families metallurgists already use: the iron base, the nickel&ndash;chromium superalloys, the copper base, the light metals, the low&#8209;melting solders, the refractory mixes. One group comes back with a single member &mdash; that is not a failure but the clustering pointing out that this set holds exactly one zinc&#8209;base alloy.</p>
+    <div class="grid3" id="clusters"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">03</span><h2>Which elements travel together</h2>
+      <p>Element &times; element &middot; overlap in presence, not in quantity</p></div>
+    <div class="card"><div id="cooc" class="plot"></div></div>
+    <p class="pt-caption" style="max-width:840px">
+      <b>How to read a cell.</b> Of the alloys that contain either of the two elements, what share contain <i>both</i>. Presence only &mdash; carbon at 0.08% counts exactly like iron at 99%, because the question here is who turns up together, not in what proportion. A mass-weighted version of this chart was tried first and was useless: the base metals swamped it and 93% of the matrix collapsed into a single shade.
+      <br><br>
+      <b>Why the elements are in this order.</b> Not by atomic number &mdash; that scatters partners across the grid. They are seriated by their own position in this co&#8209;occurrence space, so elements that travel together sit side by side and the blocks become visible.
+      <br><br>
+      The steel&#8209;making block runs along one corner: iron with manganese at 63%, with silicon at 58%, with chromium at 50%, with nickel at 49%. Chromium and nickel reach 48% &mdash; that pairing <i>is</i> stainless. Aluminium and magnesium at 47% are the light&#8209;alloy corner. But the strongest bond in the whole matrix, hafnium with tantalum at 67%, deserves suspicion rather than excitement: it rests on three alloys. Among rare elements a single shared recipe moves the number a long way, so read the bright cells in the sparse corner as a hint, not a finding.</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">04</span><h2>Every pair, at once</h2>
+      <p>Recipe affinity ordered by system &mdash; bright blocks are the families</p></div>
+    <div class="card"><div id="matrix" class="plot"></div></div>
+  </section>
+
+  <footer>
+    <div class="method">
+      <b>How to read this.</b> Each alloy is a vector of thirty-one element weights summing to 100. Because those weights are <i>parts of a whole</i>, ordinary distance would mislead &mdash; raise the chromium and the iron must fall whether the metallurgist meant it or not. Weights are therefore square&#8209;root transformed, which turns each recipe into a point on a sphere where straight&#8209;line distance is a fair measure of being made of the same stuff. Affinity is a Gaussian function of that distance, 100 meaning an identical recipe.
+      <br><br>
+      <b>Where the numbers come from.</b> Specifications give ranges, not numbers. Range&#8209;specified elements use the midpoint; elements given only as a maximum use the maximum, which biases minor elements upward and the base metal downward. Every row states which. Full rules and every source are on the <b>Sources &amp; Method</b> tab.
+    </div>
+    <div class="copyright">&copy; 2026 Ahmet Alper Kunt &middot; A personal, non&#8209;commercial alloy atlas &mdash; free to explore, use and share. Made with AI.</div>
+  </footer>
+</div>
+
+<div class="tabpane" id="tab-behave" hidden>
+  <header class="hero" style="padding:46px 0 6px">
+    <div class="eyebrow">The second atlas</div>
+    <h1>Same alloys, judged on <em>what the mix implies</em>.</h1>
+    <p class="lede">Two recipes can share almost no elements and still behave alike, and two that look nearly identical can sit on opposite sides of a phase boundary. So each composition goes through nine descriptors metallurgists use to predict behaviour. None of these are new measurements &mdash; they are all arithmetic on the same table.</p>
+  </header>
+  <div class="controls">
+    <div><div class="ctl-label">Reference alloy</div><select id="ref2" aria-label="Reference alloy"></select></div>
+    <div><div class="ctl-label">X axis</div><select id="xAx" aria-label="X axis"></select></div>
+    <div><div class="ctl-label">Y axis</div><select id="yAx" aria-label="Y axis"></select></div>
+    <div class="hint">Try <b>mixing entropy</b> against <b>size mismatch</b> &mdash; the classic screen for whether a mix stays one solid solution or breaks into brittle compounds. The high&#8209;entropy alloys separate themselves at the right-hand edge without being told to.</div>
+  </div>
+  <section style="padding-top:6px"><div class="card"><div id="scat" class="plot"></div></div></section>
+  <section>
+    <div class="grid2">
+      <div class="card">
+        <div class="ranktitle"><div class="who">Behaves most like <b id="whoName2">&mdash;</b></div>
+          <div class="chip">affinity 0&ndash;100</div></div>
+        <div class="bars" id="bars2"></div><div class="distant" id="distant2"></div>
+      </div>
+      <div class="card"><div class="ranktitle"><div class="who">Descriptor fingerprint</div></div>
+        <div id="radar" class="plot"></div></div>
+    </div>
+  </section>
+  <section>
+    <div class="sec-head"><span class="n">05</span><h2>Where the two atlases disagree</h2>
+      <p>Pairs whose recipe rank and behaviour rank pull hardest in opposite directions</p></div>
+    <div class="card"><div class="div-list" id="diverge"></div></div>
+    <p class="pt-caption" style="max-width:820px">A pair high on this list is either a <b>convergence</b> &mdash; different elements arriving at the same physics &mdash; or a <b>near&#8209;miss</b>, where a small change of recipe moves the alloy somewhere else entirely. Both are the interesting cases, and a single blended similarity score would have averaged them into invisibility.</p>
+  </section>
+  <footer>
+    <div class="method">
+      <b>How the descriptors are built.</b> Weight percents become mole fractions, then: <b>mixing entropy</b> is &minus;&Sigma;x&middot;ln&nbsp;x in units of R, peaking at ln&nbsp;N for an equal&#8209;parts mix; <b>size mismatch</b> and <b>electronegativity spread</b> are the composition&#8209;weighted scatter of atomic radius and Pauling electronegativity; <b>VEC</b> is the average valence electron count. <b>Density</b> follows the inverse rule of mixtures, <b>melting point</b> and <b>cost</b> the direct one.
+      <br><br>
+      <b>What these are not.</b> First&#8209;order screening rules, the kind used to decide what is worth trying &mdash; not a phase diagram, and no substitute for CALPHAD or a furnace. The rule of mixtures ignores ordering, precipitation and porosity, and the descriptors say nothing about heat treatment, which routinely matters more than composition.
+    </div>
+    <div class="copyright">&copy; 2026 Ahmet Alper Kunt &middot; A personal, non&#8209;commercial alloy atlas &mdash; free to explore, use and share. Made with AI.</div>
+  </footer>
+</div>
+
+<div class="tabpane" id="tab-sources" hidden>
+  <header class="hero" style="padding:46px 0 6px">
+    <div class="eyebrow">Sources &amp; Method</div>
+    <h1>Every row, <em>and where it came from</em>.</h1>
+    <p class="lede">This tab exists because the first version of this dataset was assembled from recall rather than from sources, and could not be defended. What follows is the correction: the tier each row sits in, the designation it claims, whether its specification has actually been opened, and the rule used to turn a range into a number.</p>
+  </header>
+
+  <div class="method-grid">
+    <div class="card">
+      <div class="ranktitle"><div class="who">The three tiers</div></div>
+      <ol class="steps">
+        <li><b>A &mdash; standard</b> &middot; a published standard specifies the <i>chemistry</i>, not merely a mechanical class. UNS, ASTM, AA, SAE, AMS, EN.</li>
+        <li><b>B &mdash; literature</b> &middot; no standard exists; a peer&#8209;reviewed paper defines the composition. The research alloys.</li>
+        <li><b>C &mdash; nominal</b> &middot; trade or generic name, composition from one named supplier datasheet. The weakest rows, and marked as such.</li>
+      </ol>
+      <p class="prose" style="margin-top:14px">A row also carries <b>READ</b> or <b>candidate</b>. That is a separate axis from the tier: it records whether the source was actually retrieved, not how good the source is.</p>
+    </div>
+    <div class="card">
+      <div class="ranktitle"><div class="who">Turning a spec into one number</div></div>
+      <ol class="steps">
+        <li><b>R &mdash; range</b> &middot; e.g. Cr 18.0&ndash;20.0 &rarr; the midpoint, 19.0. No bias.</li>
+        <li><b>M &mdash; maximum only</b> &middot; e.g. Mn &le; 2.0 &rarr; the maximum. <b>Biases minor elements upward.</b></li>
+        <li><b>B &mdash; balance</b> &middot; 100 minus the rest. Absorbs the bias above.</li>
+        <li><b>E &mdash; exact</b> &middot; fixed by definition, as in an equiatomic alloy.</li>
+      </ol>
+      <p class="prose" style="margin-top:14px">The maximum was chosen for <b>M</b> because it is reproducible from the standard alone. Half the maximum is arbitrary; a typical mill analysis needs its own citation per element per grade and mostly does not exist in published form. The cost is a known, one&#8209;directional bias: read minor elements as upper bounds and base metals as lower bounds.</p>
+    </div>
+  </div>
+
+  <div class="warnbox">
+    <span class="h">One test this atlas can fail, and one it cannot.</span>
+    Density predicted from the recipe by the rule of mixtures tracks published handbook density closely. That is an <b>internal consistency check</b> &mdash; it confirms the compositions and the element constants agree with each other, and an invented composition would likely break it. It does <b>not</b> confirm that a row matches its specification. Only the citation in the row does that, which is why the READ badge is the number that matters on this page.
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="n">06</span><h2>The source table</h2>
+      <p>Every row, its designation, its standard, and whether the spec was opened</p></div>
+    <div class="tbl-wrap"><table class="data src-tbl" id="srcTable"></table></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">07</span><h2>The full composition table</h2>
+      <p>weight % &middot; deeper colour = more of that element (log-scaled) &middot; <b>*</b> marks a spec maximum</p></div>
+    <div class="tbl-wrap"><table class="data" id="dataTable"></table></div>
+    <div class="scalekey"><span>trace</span><i class="grad"></i><span>base</span>
+      <span style="margin-left:6px">log-scaled &middot; faint dash = not present</span></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">08</span><h2>The nine derived descriptors</h2>
+      <p>Every number below is computed from the table above &mdash; nothing new is added</p></div>
+    <div class="tbl-wrap"><table class="data" id="descTable"></table></div>
+  </section>
+
+  <footer>
+    <div class="method">
+      <b>What was left out.</b> Nitrogen, sulphur, boron and the rare earths appear in real specifications but are dropped to keep the element set legible; so are residuals below roughly 0.05%. Phosphorus was originally dropped too, until the C51000 specification made the omission absurd &mdash; a phosphor bronze with no phosphorus &mdash; so it was restored. The remaining absences matter most for nitrogen&#8209;strengthened duplex grades and the magnesium alloys, where hundredths of a percent change the metal.
+      <br><br>
+      <b>Element constants.</b> Atomic mass, metallic radius, Pauling electronegativity, valence electron count, density and melting point are textbook values. Prices are order&#8209;of&#8209;magnitude figures for the pure element and move with the market, so the cost descriptor is a ranking, not a quote.
+    </div>
+    <div class="copyright">&copy; 2026 Ahmet Alper Kunt &middot; A personal, non&#8209;commercial alloy atlas &mdash; free to explore, use and share. Made with AI.</div>
+  </footer>
+</div>
+
+<div class="tabpane" id="tab-sig" hidden>
+  <header class="hero" style="padding:46px 0 6px">
+    <div class="eyebrow">Signature Element</div>
+    <h1>The one element that <em>makes it what it is</em>.</h1>
+    <p class="lede">Not the biggest ingredient &mdash; that is almost always the boring answer, and it is iron nine times out of ten. The signature element is the one this alloy holds far more of than alloys in general do, found the way a search engine finds the word that defines a document: weight against rarity.</p>
+  </header>
+  <div class="sig-hero">
+    <div class="card sig-stage" id="sigStage"></div>
+    <div class="card">
+      <div class="ranktitle"><div class="who">How the lift is calculated</div></div>
+      <p class="prose">For every element in a recipe, divide its weight percent by that element&rsquo;s average weight percent across the whole set. An element sitting at three times its usual share is doing three times its usual work. The highest ratio wins.
+      <br><br>
+      The measure is deliberately blunt and its failures are instructive. It hands mild steel <b>iron</b>, which is right &mdash; plain carbon steel really is just iron. It hands the single&#8209;crystal turbine alloy <b>rhenium</b> at three percent, which is also right, and is most of the reason that alloy costs what it does. Where it goes wrong is on alloys defined by something they <i>do not</i> contain: lead&#8209;free solder is remarkable for the lead that was taken out, and no ratio over what is present can see an absence.</p>
+      <div class="pt-legend" style="margin-top:18px"><span id="sigCount"></span></div>
+    </div>
+  </div>
+  <section>
+    <div class="sec-head"><span class="n">09</span><h2>Every alloy</h2><p>Tap any to see its signature</p></div>
+    <div class="sig-grid" id="sigGrid"></div>
+  </section>
+  <footer>
+    <div class="method">
+      <b>Why lift and not the largest share.</b> Ranking by raw weight percent would return the base metal for almost every alloy and tell you nothing. Dividing by each element&rsquo;s average share across the set asks a better question: what is unusual here? It is the arithmetic behind TF&#8209;IDF in text search, applied to metal instead of words. Elements below 0.3% are ignored so trace residuals cannot win on rarity alone.
+    </div>
+    <div class="copyright">&copy; 2026 Ahmet Alper Kunt &middot; A personal, non&#8209;commercial alloy atlas &mdash; free to explore, use and share. Made with AI.</div>
+  </footer>
+</div>
+
+<div class="tabpane" id="tab-notebook" hidden>
+  <header class="hero" style="padding:46px 0 6px">
+    <div class="eyebrow">Notebook</div>
+    <h1>The whole thing, <em>as code</em>.</h1>
+    <p class="lede">Both pipelines in plain Python, with the reasoning for each step. Download it and every number on this site is reproducible.</p>
+  </header>
+  <div class="nb-actions">
+    <button class="dlbtn" id="dlipynb">Download .ipynb</button>
+    <span class="nb-note">Runs on pandas, numpy, scikit-learn and plotly.</span>
+  </div>
+  <div id="nbcells"></div>
+</div>
+<script type="text/x-nb" data-t="md">
+# The Alloy Atlas
+
+Fifty-three alloys read as element recipes, then compared two ways: by what they are
+made of, and by what the mix implies. Every row is traceable to a named source and
+carries the tier and verification state shown on the site.
+
+**The honest bit first.** Specifications give ranges, not numbers. Range-specified
+elements use the midpoint; elements given only as a maximum use the maximum, which
+biases minor elements upward and the base metal downward. Rows whose specification
+has not been retrieved are marked `chk=False` — they are candidates, not data.
+</script>
+<script type="text/x-nb" data-t="code">
+import numpy as np, pandas as pd, json
+
+df = pd.read_json('alloys.json')          # n x 31 weight percent, plus provenance
+AX = list(df.columns[df.columns.str.match('^[A-Z][a-z]?$')])
+W  = df[AX].to_numpy() / 100.0            # mass fractions, rows sum to 1
+print(W.shape, W.sum(1).round(6)[:5])
+</script>
+<script type="text/x-nb" data-t="md">
+## 1 — Recipe space
+
+Compositions are *parts of a whole*: raise the chromium and the iron must fall.
+Plain Euclidean distance on the raw percents double-counts that forced trade-off.
+
+The square-root (Hellinger) map sends each recipe to a point on the unit sphere,
+where straight-line distance is a proper metric on distributions — and unlike the
+log-ratio transforms it tolerates the many structural zeros without imputation.
+</script>
+<script type="text/x-nb" data-t="code">
+H = np.sqrt(W)                                     # Hellinger map
+Dr = np.sqrt(((H[:,None,:] - H[None,:,:])**2).sum(-1))
+sigma = Dr[np.triu_indices_from(Dr,1)].mean()
+Ar = 100*np.exp(-Dr**2/(2*sigma**2)); np.fill_diagonal(Ar, 100)
+</script>
+<script type="text/x-nb" data-t="md">
+## 2 — Behaviour space
+
+Nine descriptors, all arithmetic on the same table. Weight percent goes to mole
+fraction first, because entropy, size mismatch and VEC are all *per atom* quantities.
+</script>
+<script type="text/x-nb" data-t="code">
+M = np.array([EL[e]['mass'] for e in AX])
+X = W/M; X = X/X.sum(1, keepdims=True)             # mole fractions
+
+def spread(prop):                                  # composition-weighted scatter
+    p = np.array([EL[e][prop] for e in AX]); mu = X@p
+    return np.sqrt((X*(p-mu[:,None])**2).sum(1)), mu
+
+S    = -(np.where(X>0, X*np.log(np.where(X>0,X,1)), 0)).sum(1)   # mixing entropy / R
+dChi, _   = spread('en')
+rad  = np.array([EL[e]['r'] for e in AX]); rbar = X@rad
+delta = 100*np.sqrt((X*(1-rad/rbar[:,None])**2).sum(1))
+VEC  = X@np.array([EL[e]['vec'] for e in AX])
+rho  = 1/(W/np.array([EL[e]['rho'] for e in AX])).sum(1)         # inverse rule of mixtures
+Tm   = X@np.array([EL[e]['tm'] for e in AX])
+cost = W@np.array([EL[e]['usd'] for e in AX])
+nEl  = (W>1e-5).sum(1); load = 100 - W.max(1)*100
+</script>
+<script type="text/x-nb" data-t="md">
+**A check the conversion has to pass.** Entropy is computed from mole fractions, so a
+correct weight↔atomic round trip must return exactly `ln N` for an equiatomic
+N-component alloy. Cantor CoCrFeMnNi gives 1.6094 against ln 5 = 1.6094; Nb25Mo25Ta25W25
+gives 1.3863 against ln 4 = 1.3863. That validates the arithmetic — not the compositions.
+</script>
+<script type="text/x-nb" data-t="code">
+B = np.c_[nEl, S, load, np.log10(delta+1e-9), dChi, VEC, rho, Tm, np.log10(cost)]
+B = (B - B.mean(0)) / B.std(0)                     # z-score so none dominates
+Db = np.sqrt(((B[:,None,:]-B[None,:,:])**2).sum(-1))
+sb = Db[np.triu_indices_from(Db,1)].mean()
+Ab = 100*np.exp(-Db**2/(2*sb**2)); np.fill_diagonal(Ab, 100)
+</script>
+<script type="text/x-nb" data-t="md">
+## 3 — Where the two disagree
+
+The point of keeping the spaces apart. Rank every alloy's neighbours in both, and the
+biggest rank gaps are either a **convergence** — different elements, same physics — or a
+**near-miss**, where a small change of recipe lands somewhere else entirely. A single
+blended score would have averaged both into invisibility.
+</script>
+<script type="text/x-nb" data-t="code">
+rr = (-Ar).argsort(1).argsort(1); rb = (-Ab).argsort(1).argsort(1)
+gap = np.abs(rr-rb); np.fill_diagonal(gap, 0)
+i,j = np.unravel_index(np.argsort(gap, axis=None)[::-1][:20], gap.shape)
+for a,b in list(zip(i,j))[::2][:8]:
+    print(f"{df.n[a]:26s} {df.n[b]:26s} recipe #{rr[a,b]:2d}  behaviour #{rb[a,b]:2d}")
+</script>
+<script type="text/x-nb" data-t="md">
+---
+### The caveat that does not go away
+A nominal composition is not a melt analysis. The bar in your hand differs from the
+midpoint of its own specification, and heat treatment routinely matters more than
+chemistry. Read this as a map of how alloys relate, not as a mill certificate.
+</script>
+
+<script>
+const AX=["Li", "Be", "C", "Mg", "Al", "Si", "P", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Zr", "Nb", "Mo", "Ag", "In", "Sn", "Sb", "Hf", "Ta", "W", "Re", "Pt", "Au", "Pb", "Bi"];
+const ELP={"Li": [3, 1, 2, 6.94, 152, 0.98, 1, 0.534, 454, 85, "Lithium"], "Be": [4, 2, 2, 9.012, 112, 1.57, 2, 1.85, 1560, 850, "Beryllium"], "C": [6, 14, 2, 12.011, 70, 2.55, 4, 2.26, 3800, 2, "Carbon"], "Mg": [12, 2, 3, 24.305, 160, 1.31, 2, 1.738, 923, 3, "Magnesium"], "Al": [13, 13, 3, 26.982, 143, 1.61, 3, 2.7, 933, 2.4, "Aluminium"], "Si": [14, 14, 3, 28.085, 117, 1.9, 4, 2.33, 1687, 2.5, "Silicon"], "P": [15, 15, 3, 30.974, 110, 2.19, 5, 1.82, 317, 3, "Phosphorus"], "Ti": [22, 4, 4, 47.867, 147, 1.54, 4, 4.51, 1941, 9, "Titanium"], "V": [23, 5, 4, 50.942, 134, 1.63, 5, 6.11, 2183, 28, "Vanadium"], "Cr": [24, 6, 4, 51.996, 128, 1.66, 6, 7.19, 2180, 9, "Chromium"], "Mn": [25, 7, 4, 54.938, 127, 1.55, 7, 7.44, 1519, 2, "Manganese"], "Fe": [26, 8, 4, 55.845, 126, 1.83, 8, 7.874, 1811, 0.5, "Iron"], "Co": [27, 9, 4, 58.933, 125, 1.88, 9, 8.9, 1768, 33, "Cobalt"], "Ni": [28, 10, 4, 58.693, 124, 1.91, 10, 8.908, 1728, 17, "Nickel"], "Cu": [29, 11, 4, 63.546, 128, 1.9, 11, 8.96, 1358, 9, "Copper"], "Zn": [30, 12, 4, 65.38, 134, 1.65, 12, 7.14, 693, 2.8, "Zinc"], "Zr": [40, 4, 5, 91.224, 160, 1.33, 4, 6.52, 2128, 35, "Zirconium"], "Nb": [41, 5, 5, 92.906, 146, 1.6, 5, 8.57, 2750, 45, "Niobium"], "Mo": [42, 6, 5, 95.95, 139, 2.16, 6, 10.28, 2896, 40, "Molybdenum"], "Ag": [47, 11, 5, 107.868, 144, 1.93, 11, 10.49, 1235, 850, "Silver"], "In": [49, 13, 5, 114.818, 167, 1.78, 3, 7.31, 430, 250, "Indium"], "Sn": [50, 14, 5, 118.71, 140, 1.96, 4, 7.29, 505, 30, "Tin"], "Sb": [51, 15, 5, 121.76, 140, 2.05, 5, 6.69, 904, 12, "Antimony"], "Hf": [72, 4, 6, 178.49, 159, 1.3, 4, 13.31, 2506, 900, "Hafnium"], "Ta": [73, 5, 6, 180.948, 146, 1.5, 5, 16.65, 3290, 300, "Tantalum"], "W": [74, 6, 6, 183.84, 139, 2.36, 6, 19.25, 3695, 35, "Tungsten"], "Re": [75, 7, 6, 186.207, 137, 1.9, 7, 21.02, 3459, 3000, "Rhenium"], "Pt": [78, 10, 6, 195.084, 139, 2.28, 10, 21.45, 2041, 31000, "Platinum"], "Au": [79, 11, 6, 196.967, 144, 2.54, 11, 19.3, 1337, 62000, "Gold"], "Pb": [82, 14, 6, 207.2, 175, 2.33, 4, 11.34, 601, 2.2, "Lead"], "Bi": [83, 15, 6, 208.98, 156, 2.02, 5, 9.78, 544, 12, "Bismuth"]};
+const D=[
+{"n":"Stainless 304","cat":"Steel & Iron","tier":"A","desig":"UNS S30400","std":"ASTM A240/A240M","url":"https://gravitycastindia.com/images/resources/ferrouspdf/ASTM%20A240%20UNS%20S30400.pdf","unit":"wt%","chk":true,"basis":{"Cr":"R","Ni":"R","Mn":"M","Si":"M","C":"M","Fe":"B"},"v":[0.0,0.0,0.08,0.0,0.0,0.75,0.0,0.0,0.0,19.0,2.0,68.92,0.0,9.25,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Inconel 718","cat":"Nickel & Cobalt","tier":"A","desig":"UNS N07718","std":"ASTM B637 / AMS 5596","url":"https://en.wikipedia.org/wiki/Inconel_718","unit":"wt%","chk":true,"basis":{"Ni":"R","Cr":"R","Nb":"R","Mo":"R","Ti":"R","Al":"R","Co":"M","Mn":"M","Si":"M","C":"M","Cu":"M","Fe":"B"},"v":[0.0,0.0,0.08,0.0,0.5,0.35,0.0,0.9,0.0,19.0,0.35,16.845,1.0,52.5,0.3,0.0,0.0,5.125,3.05,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Aluminium 6061","cat":"Aluminium","tier":"A","desig":"AA 6061 / UNS A96061","std":"Aluminum Association","url":"https://www.mwcomponents.com/uploads/Resource-Center/Elgin-Material-Sheets/Aluminum-6061-Fact-Sheet_Elgin-Website.pdf","unit":"wt%","chk":true,"basis":{"Mg":"R","Si":"R","Cu":"R","Cr":"R","Fe":"M","Mn":"M","Zn":"M","Ti":"M","Al":"B"},"v":[0.0,0.0,0.0,1.0,96.68,0.6,0.0,0.15,0.0,0.195,0.15,0.7,0.0,0.0,0.275,0.25,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Cartridge Brass 70/30","cat":"Copper","tier":"A","desig":"UNS C26000","std":"ASTM B927/B927M-23","url":"https://www.concast.com/files/C26000.pdf","unit":"wt%","chk":true,"basis":{"Cu":"R","Pb":"M","Fe":"M","Zn":"B"},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.05,0.0,0.0,70.0,29.88,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.07,0.0]},
+{"n":"Phosphor Bronze C510","cat":"Copper","tier":"A","desig":"UNS C51000","std":"CDA / ASTM B103, B139","url":"https://alloys.copper.org/alloy/C51000","unit":"wt%","chk":true,"basis":{"Sn":"R","P":"R","Pb":"M","Zn":"M","Fe":"M","Cu":"B"},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.19,0.0,0.0,0.0,0.0,0.1,0.0,0.0,94.36,0.3,0.0,0.0,0.0,0.0,0.0,5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.05,0.0]},
+{"n":"Cantor CoCrFeMnNi","cat":"High-Entropy","tier":"B","desig":"equiatomic CoCrFeMnNi","std":"Cantor, Chang, Knight & Vincent, Mater. Sci. Eng. A 375-377 (2004) 213-218","url":"https://www.sciencedirect.com/science/article/abs/pii/S0921509303009936","unit":"at%","chk":true,"basis":{"Fe":"E","Cr":"E","Mn":"E","Ni":"E","Co":"E"},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18.5432,19.5924,19.9158,21.0171,20.9315,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Refractory NbMoTaW","cat":"High-Entropy","tier":"B","desig":"Nb25Mo25Ta25W25","std":"Senkov, Wilks, Scott & Miracle, Intermetallics 19 (2011) 698-706","url":"https://arxiv.org/pdf/1602.01155","unit":"at%","chk":true,"basis":{"Nb":"E","Mo":"E","Ta":"E","W":"E"},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,16.7808,17.3306,0.0,0.0,0.0,0.0,0.0,32.6831,33.2055,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Mild Steel 1018","cat":"Steel & Iron","tier":"A","desig":"UNS G10180","std":"SAE J403","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.18,0.0,0.0,0.15,0.0,0.0,0.0,0.0,0.75,98.92,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Stainless 316","cat":"Steel & Iron","tier":"A","desig":"UNS S31600","std":"ASTM A240","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.07,0.0,0.0,0.75,0.0,0.0,0.0,17.0,2.0,65.68,0.0,12.0,0.0,0.0,0.0,0.0,2.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Stainless 430","cat":"Steel & Iron","tier":"A","desig":"UNS S43000","std":"ASTM A240","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.1,0.0,0.0,0.75,0.0,0.0,0.0,17.0,1.0,81.15,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Duplex 2205","cat":"Steel & Iron","tier":"A","desig":"UNS S32205","std":"ASTM A240","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.02,0.0,0.0,0.5,0.0,0.0,0.0,22.0,1.5,67.28,0.0,5.5,0.0,0.0,0.0,0.0,3.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Tool Steel D2","cat":"Steel & Iron","tier":"A","desig":"UNS T30402","std":"ASTM A681","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,1.5,0.0,0.0,0.3,0.0,0.0,0.9,12.0,0.4,84.0,0.0,0.0,0.0,0.0,0.0,0.0,0.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"High-Speed Steel M2","cat":"Steel & Iron","tier":"A","desig":"UNS T11302","std":"ASTM A600","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.9,0.0,0.0,0.0,0.0,0.0,1.9,4.1,0.3,81.6,0.0,0.0,0.0,0.0,0.0,0.0,5.0,0.0,0.0,0.0,0.0,0.0,0.0,6.2,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Grey Cast Iron","cat":"Steel & Iron","tier":"A","desig":"SAE J431 G3000","std":"SAE J431","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,3.4,0.0,0.0,2.5,0.12,0.0,0.0,0.0,0.6,93.38,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Maraging 250","cat":"Steel & Iron","tier":"A","desig":"UNS K92890","std":"AMS 6512","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.1,0.0,0.0,0.45,0.0,0.0,0.0,67.95,8.0,18.5,0.0,0.0,0.0,0.0,5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Hadfield Mn Steel","cat":"Steel & Iron","tier":"A","desig":"-","std":"ASTM A128 Gr B","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,1.2,0.0,0.0,0.6,0.0,0.0,0.0,0.0,12.5,85.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Invar 36","cat":"Steel & Iron","tier":"A","desig":"UNS K93600","std":"ASTM F1684","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.05,0.0,0.0,0.2,0.0,0.0,0.0,0.0,0.4,63.35,0.0,36.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Inconel 625","cat":"Nickel & Cobalt","tier":"A","desig":"UNS N06625","std":"ASTM B443","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.2,0.0,0.0,0.2,0.0,21.5,0.0,4.0,0.0,61.5,0.0,0.0,0.0,3.6,9.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Hastelloy C-276","cat":"Nickel & Cobalt","tier":"A","desig":"UNS N10276","std":"ASTM B575","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,15.5,0.5,5.5,1.5,57.2,0.0,0.0,0.0,0.0,16.0,0.0,0.0,0.0,0.0,0.0,0.0,3.8,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Nimonic 80A","cat":"Nickel & Cobalt","tier":"A","desig":"UNS N07080","std":"BS HR401","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,1.4,0.0,0.0,2.4,0.0,19.5,0.5,1.5,1.0,73.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Monel 400","cat":"Nickel & Cobalt","tier":"A","desig":"UNS N04400","std":"ASTM B127","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,1.2,2.0,0.0,64.5,32.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Nichrome 80/20","cat":"Nickel & Cobalt","tier":"A","desig":"UNS N06003","std":"ASTM B344","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.5,0.0,0.0,0.0,20.0,0.5,1.0,0.0,78.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Stellite 6","cat":"Nickel & Cobalt","tier":"A","desig":"UNS R30006","std":"AMS 5387","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,1.2,0.0,0.0,1.2,0.0,0.0,0.0,29.0,0.0,2.5,58.1,2.5,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,4.5,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Kovar","cat":"Nickel & Cobalt","tier":"A","desig":"UNS K94610","std":"ASTM F15","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.2,0.0,0.0,0.0,0.0,0.3,53.5,17.0,29.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Nitinol","cat":"Nickel & Cobalt","tier":"A","desig":"UNS N01555","std":"ASTM F2063","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,45.0,0.0,0.0,0.0,0.0,0.0,55.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"CMSX-4","cat":"Nickel & Cobalt","tier":"B","desig":"-","std":"Harris et al., Superalloys 1992, TMS","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,5.6,0.0,0.0,1.0,0.0,6.5,0.0,0.0,9.0,61.7,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.1,6.5,6.0,3.0,0.0,0.0,0.0,0.0]},
+{"n":"Aluminium 1100","cat":"Aluminium","tier":"A","desig":"AA 1100 / UNS A91100","std":"Aluminum Association","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,99.08,0.25,0.0,0.0,0.0,0.0,0.05,0.5,0.0,0.0,0.12,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Aluminium 7075","cat":"Aluminium","tier":"A","desig":"AA 7075","std":"Aluminum Association","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,2.5,89.77,0.0,0.0,0.0,0.0,0.23,0.0,0.3,0.0,0.0,1.6,5.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Aluminium 2024","cat":"Aluminium","tier":"A","desig":"AA 2024","std":"Aluminum Association","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,1.5,93.0,0.2,0.0,0.0,0.0,0.0,0.6,0.3,0.0,0.0,4.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Aluminium 5083","cat":"Aluminium","tier":"A","desig":"AA 5083","std":"Aluminum Association","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,4.4,94.2,0.25,0.0,0.0,0.0,0.15,0.7,0.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Al-Li 2195","cat":"Aluminium","tier":"A","desig":"AA 2195","std":"Aluminum Association","url":"","unit":"wt%","chk":false,"basis":{},"v":[1.0,0.0,0.0,0.4,94.08,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,0.0,0.12,0.0,0.0,0.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"A356 Casting Alloy","cat":"Aluminium","tier":"A","desig":"AA A356.0","std":"ASTM B26","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.35,92.38,7.0,0.0,0.12,0.0,0.0,0.0,0.15,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Copper C110","cat":"Copper","tier":"A","desig":"UNS C11000","std":"ASTM B152","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Naval Brass","cat":"Copper","tier":"A","desig":"UNS C46400","std":"ASTM B171","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,60.0,39.2,0.0,0.0,0.0,0.0,0.0,0.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Aluminium Bronze C954","cat":"Copper","tier":"A","desig":"UNS C95400","std":"ASTM B148","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,11.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,0.0,1.0,84.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Cupronickel 90/10","cat":"Copper","tier":"A","desig":"UNS C70600","std":"ASTM B111","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.8,1.4,0.0,10.0,87.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Beryllium Copper C172","cat":"Copper","tier":"A","desig":"UNS C17200","std":"ASTM B196","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,1.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.25,0.0,97.85,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Titanium Grade 2","cat":"Titanium & Light","tier":"A","desig":"UNS R50400","std":"ASTM B265","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.08,0.0,0.0,0.0,0.0,99.62,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Ti-6Al-4V","cat":"Titanium & Light","tier":"A","desig":"UNS R56400","std":"ASTM B265 Gr5","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,6.0,0.0,0.0,89.75,4.0,0.0,0.0,0.25,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Ti-6242","cat":"Titanium & Light","tier":"A","desig":"UNS R54620","std":"AMS 4975","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,6.0,0.0,0.0,86.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,0.0,2.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Magnesium AZ31","cat":"Titanium & Light","tier":"A","desig":"UNS M11311","std":"ASTM B90","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,95.7,3.0,0.0,0.0,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Magnesium AZ91","cat":"Titanium & Light","tier":"A","desig":"UNS M11914","std":"ASTM B93","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,90.1,9.0,0.0,0.0,0.0,0.0,0.0,0.2,0.0,0.0,0.0,0.0,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Zamak 3","cat":"Titanium & Light","tier":"A","desig":"UNS Z33520","std":"ASTM B86","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.04,4.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.05,95.91,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Solder Sn63/Pb37","cat":"Solder & Low-melt","tier":"A","desig":"-","std":"ASTM B32 Sn63","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,63.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,37.0,0.0]},
+{"n":"SAC305 Solder","cat":"Solder & Low-melt","tier":"A","desig":"-","std":"J-STD-006 SAC305","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.0,0.0,0.0,0.0,3.0,0.0,96.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Sn-Bi 42/58 Solder","cat":"Solder & Low-melt","tier":"A","desig":"-","std":"ASTM B32 Sn42","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,42.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,58.0]},
+{"n":"Babbitt Bearing Metal","cat":"Solder & Low-melt","tier":"A","desig":"UNS L13910","std":"ASTM B23 Gr2","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.5,0.0,0.0,0.0,0.0,0.0,0.0,89.0,7.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Sterling Silver","cat":"Precious","tier":"A","desig":"-","std":"ASTM B700 / 925 fineness","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.5,0.0,0.0,0.0,0.0,92.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Al0.3CoCrFeNi","cat":"High-Entropy","tier":"B","desig":"-","std":"Wang et al., Intermetallics 26 (2012) 44-51","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,3.6,0.0,0.0,0.0,0.0,21.4,0.0,23.0,24.3,27.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"TiZrNbHfTa","cat":"High-Entropy","tier":"B","desig":"-","std":"Senkov et al., J. Alloys Compd. 509 (2011) 6043-6048","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,15.4,15.7,0.0,0.0,0.0,0.0,0.0,30.2,30.6,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Pewter","cat":"Solder & Low-melt","tier":"C","desig":"-","std":"ASTM B560 Type 2 (supplier nominal)","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,92.0,6.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+{"n":"Gunmetal Bronze","cat":"Copper","tier":"C","desig":"UNS C90500","std":"ASTM B584 (supplier nominal)","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,86.0,2.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0]},
+{"n":"Tungsten Carbide-10Co","cat":"Refractory & Hard","tier":"C","desig":"-","std":"cemented carbide, supplier nominal","url":"","unit":"wt%","chk":false,"basis":{},"v":[0.0,0.0,5.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,84.6,0.0,0.0,0.0,0.0,0.0]}
+];
+</script>
+<script>
+/* ===================== PREP ===================== */
+const names=D.map(d=>d.n), cats=D.map(d=>d.cat);
+const NEL=AX.length, NALL=D.length;
+const P={}; AX.forEach((e,j)=>P[e]={Z:ELP[e][0],g:ELP[e][1],p:ELP[e][2],mass:ELP[e][3],
+  r:ELP[e][4],en:ELP[e][5],vec:ELP[e][6],rho:ELP[e][7],tm:ELP[e][8],usd:ELP[e][9],nm:ELP[e][10],j});
+const W=D.map(d=>d.v.map(v=>v/100));
+
+/* descriptors (per alloy, over the full set — independent of filtering) */
+function moles(w){const m=AX.map((e,j)=>w[j]/P[e].mass);const t=m.reduce((a,b)=>a+b,0);return m.map(v=>v/t);}
+const DESC=W.map(w=>{
+  const x=moles(w);
+  let S=0;x.forEach(v=>{if(v>0)S-=v*Math.log(v);});
+  const rbar=x.reduce((s,v,j)=>s+v*P[AX[j]].r,0);
+  const delta=100*Math.sqrt(x.reduce((s,v,j)=>s+v*(1-P[AX[j]].r/rbar)**2,0));
+  const chib=x.reduce((s,v,j)=>s+v*P[AX[j]].en,0);
+  const dChi=Math.sqrt(x.reduce((s,v,j)=>s+v*(P[AX[j]].en-chib)**2,0));
+  const VEC=x.reduce((s,v,j)=>s+v*P[AX[j]].vec,0);
+  const rho=1/w.reduce((s,v,j)=>s+v/P[AX[j]].rho,0);
+  const Tm=x.reduce((s,v,j)=>s+v*P[AX[j]].tm,0);
+  const cost=w.reduce((s,v,j)=>s+v*P[AX[j]].usd,0);
+  const nEl=w.filter(v=>v>1e-5).length, load=100-Math.max(...w)*100;
+  return {nEl,S,load,delta,dChi,VEC,rho,Tm,cost};
+});
+const DKEYS=[["S","mixing entropy","S / R"],["delta","size mismatch","δ %"],
+ ["dChi","electronegativity spread","Δχ"],["VEC","valence electron conc.","VEC"],
+ ["rho","density","g/cm³"],["Tm","melting point","K"],["cost","cost","$/kg"],
+ ["nEl","element count","n"],["load","alloying load","wt %"]];
+const DLOG=new Set(["cost","delta"]);
+
+/* ===================== FILTERED WORLD ===================== */
+let rowMode="all", IDX=[], current=null;
+function rebuild(){
+  IDX=[...Array(NALL).keys()].filter(i=>rowMode==="all"||D[i].chk);
+  const n=IDX.length;
+  // Hellinger recipe distance
+  const H=IDX.map(i=>W[i].map(Math.sqrt));
+  RD=Array.from({length:n},()=>Array(n).fill(0));
+  for(let a=0;a<n;a++)for(let b=a+1;b<n;b++){let s=0;
+    for(let j=0;j<NEL;j++)s+=(H[a][j]-H[b][j])**2;
+    const d=Math.sqrt(s);RD[a][b]=d;RD[b][a]=d;}
+  let sm=0,c=0;for(let a=0;a<n;a++)for(let b=a+1;b<n;b++){sm+=RD[a][b];c++;}
+  RSIG=c?sm/c:1;
+  // behaviour: z-scored descriptors
+  const Braw=IDX.map(i=>DKEYS.map(([k])=>DLOG.has(k)?Math.log10(DESC[i][k]+1e-9):DESC[i][k]));
+  const mu=DKEYS.map((_,j)=>Braw.reduce((s,r)=>s+r[j],0)/n);
+  const sd=DKEYS.map((_,j)=>Math.sqrt(Braw.reduce((s,r)=>s+(r[j]-mu[j])**2,0)/n)||1);
+  BZ=Braw.map(r=>r.map((v,j)=>(v-mu[j])/sd[j]));
+  BD=Array.from({length:n},()=>Array(n).fill(0));
+  for(let a=0;a<n;a++)for(let b=a+1;b<n;b++){let s=0;
+    for(let j=0;j<DKEYS.length;j++)s+=(BZ[a][j]-BZ[b][j])**2;
+    const d=Math.sqrt(s);BD[a][b]=d;BD[b][a]=d;}
+  sm=0;c=0;for(let a=0;a<n;a++)for(let b=a+1;b<n;b++){sm+=BD[a][b];c++;}
+  BSIG=c?sm/c:1;
+  KM=kmeans(Math.min(8,Math.max(2,Math.floor(n/3))),12345);
+  EMB=mds(RD,n);
+  buildClusterInfo();
+  if(IDX.indexOf(names.indexOf(current))<0) current=names[IDX[0]];
+}
+let RD,BD,RSIG,BSIG,BZ,KM,EMB,CLI=[];
+const li=nm=>IDX.indexOf(names.indexOf(nm));               // local index
+const aR=(a,b)=>a===b?100:Math.round(100*Math.exp(-(RD[a][b]**2)/(2*RSIG*RSIG)));
+const aB=(a,b)=>a===b?100:Math.round(100*Math.exp(-(BD[a][b]**2)/(2*BSIG*BSIG)));
+
+/* clustering on CLR of the composition */
+function rng(s){let x=s>>>0;return()=>{x=(x*1664525+1013904223)>>>0;return x/4294967296;};}
+/* Cluster in the same geometry the map and the affinities use.
+   The centred log-ratio transform is the textbook choice for compositions, but it
+   needs every zero replaced by a small constant, and with 31 elements mostly absent
+   the imputed zeros end up dominating the distance — it grouped mild steel with
+   pure aluminium purely because both are "one base metal plus traces". The Hellinger
+   map handles structural zeros natively and keeps clusters consistent with the map. */
+function clr(i){return W[i].map(Math.sqrt);}
+function kmeans(k,seed){
+  const Z=IDX.map(clr), n=Z.length, m=NEL, rnd=rng(seed);
+  let cent=[Z[Math.floor(rnd()*n)].slice()];
+  while(cent.length<k){
+    const d2=Z.map(z=>Math.min(...cent.map(c=>c.reduce((s,v,j)=>s+(v-z[j])**2,0))));
+    const tot=d2.reduce((a,b)=>a+b,0);let r=rnd()*tot,acc=0,pick=0;
+    for(let i=0;i<n;i++){acc+=d2[i];if(acc>=r){pick=i;break;}}cent.push(Z[pick].slice());}
+  let asg=Array(n).fill(0);
+  for(let it=0;it<120;it++){let ch=false;
+    for(let i=0;i<n;i++){let b=0,bd=Infinity;
+      for(let c=0;c<k;c++){const d=cent[c].reduce((s,v,j)=>s+(v-Z[i][j])**2,0);if(d<bd){bd=d;b=c;}}
+      if(asg[i]!==b){asg[i]=b;ch=true;}}
+    for(let c=0;c<k;c++){const mem=Z.filter((_,i)=>asg[i]===c);
+      if(mem.length)for(let j=0;j<m;j++)cent[c][j]=mem.reduce((s,z)=>s+z[j],0)/mem.length;}
+    if(!ch)break;}
+  return {asg,cent,k};
+}
+function mds(Dm,n){
+  const D2=Dm.map(r=>r.map(v=>v*v)),B=Array.from({length:n},()=>Array(n).fill(0));
+  const rm=Array(n).fill(0);let gm=0;
+  for(let i=0;i<n;i++){for(let k=0;k<n;k++)rm[i]+=D2[i][k];rm[i]/=n;gm+=rm[i];}gm/=n;
+  for(let i=0;i<n;i++)for(let k=0;k<n;k++)B[i][k]=-0.5*(D2[i][k]-rm[i]-rm[k]+gm);
+  const pit=M=>{let v=Array(n).fill(0).map((_,i)=>Math.sin(i+1));
+    for(let it=0;it<500;it++){let nv=Array(n).fill(0);
+      for(let i=0;i<n;i++)for(let k=0;k<n;k++)nv[i]+=M[i][k]*v[k];
+      const nr=Math.sqrt(nv.reduce((s,x)=>s+x*x,0))||1;v=nv.map(x=>x/nr);}
+    const Mv=Array(n).fill(0);for(let i=0;i<n;i++)for(let k=0;k<n;k++)Mv[i]+=M[i][k]*v[k];
+    return {v,lam:v.reduce((s,x,i)=>s+x*Mv[i],0)};};
+  const e1=pit(B),B2=B.map((r,i)=>r.map((val,k)=>val-e1.lam*e1.v[i]*e1.v[k])),e2=pit(B2);
+  return {x:e1.v.map(v=>v*Math.sqrt(Math.max(e1.lam,0))),y:e2.v.map(v=>v*Math.sqrt(Math.max(e2.lam,0)))};
+}
+const CLPAL=["#5C7C8A","#C0453A","#D07B2C","#9A6E8A","#C8A24B","#8FA96E","#6E8A55","#B5651F"];
+function buildClusterInfo(){
+  CLI=[...Array(KM.k).keys()].map(c=>{
+    const mem=IDX.filter((_,a)=>KM.asg[a]===c);
+    const reps=mem.map(i=>{const a=IDX.indexOf(i);
+      return [i,KM.cent[c].reduce((s,v,j)=>s+(v-clr(i)[j])**2,0)];})
+      .sort((x,y)=>x[1]-y[1]).slice(0,2).map(x=>names[x[0]]);
+    // name by the elements the cluster is richest in
+    const avg=AX.map((_,j)=>mem.reduce((s,i)=>s+W[i][j],0)/mem.length);
+    const top=[...avg.keys()].sort((a,b)=>avg[b]-avg[a]).slice(0,3).map(j=>AX[j]);
+    return {c,color:CLPAL[c%CLPAL.length],members:mem.map(i=>names[i]),reps,top,
+      size:mem.length,name:top.slice(0,2).join("–")+" base"};
+  }).filter(x=>x.size);
+}
+const colOf=a=>CLI.find(ci=>ci.c===KM.asg[a])?.color||"#888";
+</script>
+<script>
+/* ===================== THEMES ===================== */
+const MONO="IBM Plex Mono, monospace";
+function hx(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function hexA(h,a){const[r,g,b]=hx(h);return `rgba(${r},${g},${b},${a})`;}
+function lum(c){return 0.299*c[0]+0.587*c[1]+0.114*c[2];}
+const THEMES={
+ saffron:{label:"Saffron",mode:"dark",css:{ink:"#12161B",panel:"#1A2027",panel2:"#20272F",line:"#2C353F",paper:"#ECE3D0",muted:"#8A94A0",muted2:"#657080",saffron:"#F3C34C",amber:"#E68A2E",paprika:"#CE5A2A",chili:"#B23018",sage:"#8FA96E",h0:"#20262D",h1:"#3E4A44",h2:"#8C7A34",h3:"#D69A2E",h4:"#E0722A",h5:"#B23018"},
+  onacc:"#12161B",cell:["#232A31","#8C7A34","#B23018"],
+  heat:[[0,"#20262D"],[.22,"#38433E"],[.42,"#7C6B2E"],[.62,"#C79A34"],[.80,"#E0722A"],[1,"#B23018"]],
+  p:{font:"#ECE3D0",border:"#12161B",grid:"#2C353F",tick:"#8A94A0",tick2:"#657080",accent:"#F3C34C",accent2:"#8FA96E"}},
+ porcelain:{label:"Porcelain",mode:"light",css:{ink:"#F2EEE4",panel:"#FBF9F3",panel2:"#F0EBDF",line:"#E0D8C8",paper:"#2C2622",muted:"#7A7266",muted2:"#A59C8C",saffron:"#B4791F",amber:"#C8621E",paprika:"#B4471F",chili:"#8E2A16",sage:"#6E8A55",h0:"#EAD9A8",h1:"#E3B96A",h2:"#D98F33",h3:"#C86A26",h4:"#A8401C",h5:"#7C230F"},
+  onacc:"#FBF9F3",cell:["#EFE7D6","#DA9A3C","#8E2A16"],
+  heat:[[0,"#EFE7D6"],[.28,"#E8C77E"],[.5,"#DA9A3C"],[.72,"#C4632A"],[1,"#8E2A16"]],
+  p:{font:"#2C2622",border:"#D6CCB9",grid:"#E0D8C8",tick:"#7A7266",tick2:"#A59C8C",accent:"#B4791F",accent2:"#6E8A55"}},
+ matcha:{label:"Matcha",mode:"light",css:{ink:"#EDF0E4",panel:"#F5F7EE",panel2:"#E7EBDB",line:"#D3DAC2",paper:"#232B1E",muted:"#6E7A5E",muted2:"#9AA487",saffron:"#5E8A46",amber:"#B98A2E",paprika:"#C4632A",chili:"#8E2A16",sage:"#7A9A5A",h0:"#C9D3A8",h1:"#AEBE6E",h2:"#C7A23E",h3:"#CE7A2A",h4:"#B5451F",h5:"#8E2A16"},
+  onacc:"#F5F7EE",cell:["#DCE4C6","#C7A23E","#8E2A16"],
+  heat:[[0,"#DCE4C6"],[.3,"#B7C57E"],[.5,"#C9A33E"],[.72,"#C4632A"],[1,"#8E2A16"]],
+  p:{font:"#232B1E",border:"#CBD3B6",grid:"#D3DAC2",tick:"#6E7A5E",tick2:"#9AA487",accent:"#5E8A46",accent2:"#B98A2E"}},
+ merlot:{label:"Merlot",mode:"dark",css:{ink:"#1B1116",panel:"#271821",panel2:"#2F1E28",line:"#3E2A34",paper:"#EFE2E6",muted:"#A88F98",muted2:"#7C636E",saffron:"#D8A24B",amber:"#D98A3E",paprika:"#C0623F",chili:"#7C1F2A",sage:"#C46B7A",h0:"#2F1B27",h1:"#5A2436",h2:"#8E2F44",h3:"#C0623F",h4:"#D98A3E",h5:"#E3AE45"},
+  onacc:"#1B1116",cell:["#241521","#8A2E43","#E3AE45"],
+  heat:[[0,"#241521"],[.26,"#4E2233"],[.5,"#8A2E43"],[.74,"#C05A34"],[1,"#E3AE45"]],
+  p:{font:"#EFE2E6",border:"#1B1116",grid:"#3E2A34",tick:"#A88F98",tick2:"#7C636E",accent:"#D8A24B",accent2:"#C46B7A"}},
+ espresso:{label:"Espresso",mode:"dark",css:{ink:"#17120E",panel:"#211913",panel2:"#29201A",line:"#3A2E24",paper:"#EDE3D2",muted:"#A8977F",muted2:"#7C6C58",saffron:"#D8A25A",amber:"#C87F3C",paprika:"#B5652E",chili:"#9A3B1E",sage:"#A79A6E",h0:"#2A1E14",h1:"#4A3320",h2:"#7C5628",h3:"#B67C33",h4:"#D29A45",h5:"#E3B15A"},
+  onacc:"#17120E",cell:["#241A12","#7C5628","#E3B15A"],
+  heat:[[0,"#241A12"],[.28,"#4A3320"],[.5,"#7C5628"],[.72,"#B67C33"],[1,"#E3B15A"]],
+  p:{font:"#EDE3D2",border:"#17120E",grid:"#3A2E24",tick:"#A8977F",tick2:"#7C6C58",accent:"#D8A25A",accent2:"#C87F3C"}}
+};
+let TP=THEMES.saffron.p, curTheme="saffron";
+/* heat lives on the theme root, not on theme.p — bind it explicitly or Plotly
+   silently falls back to its own blue-red default. */
+const HEAT=()=>THEMES[curTheme].heat;
+const BL=()=>({paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+  font:{family:"Inter, sans-serif",color:TP.font},margin:{l:0,r:0,t:0,b:0}});
+const CONFIG={displayModeBar:false,responsive:true};
+/* Charts must never be able to break interaction. Every plot call goes through
+   this guard: if the library has not arrived, or a single chart fails, the page
+   keeps working and the failure is logged rather than thrown. */
+function PL(id,data,layout){
+  if(!window.Plotly)return null;
+  const el=typeof id==="string"?document.getElementById(id):id;
+  if(!el)return null;
+  /* A placeholder written into the container poisons it: Plotly.react on a div
+     holding markup it did not create can leave the div dead and the placeholder
+     visible forever. Always hand Plotly a clean container. */
+  if(el.querySelector(".loaderr")){el.innerHTML="";try{Plotly.purge(el);}catch(e){}}
+  try{Plotly.react(el,data,layout,CONFIG);}
+  catch(e){console.warn("chart failed:",id,e&&e.message||e);return null;}
+  return (typeof el.on==="function")?el:null;
+}
+function safe(fn){try{fn();}catch(e){console.warn("render step failed:",fn.name||"anon",e);}}
+function heatAt(t){const st=THEMES[curTheme].heat;t=Math.max(0,Math.min(1,t));
+  for(let i=1;i<st.length;i++){if(t<=st[i][0]){const a=st[i-1],b=st[i];
+    const f=(t-a[0])/(b[0]-a[0]||1),A=hx(a[1]),B=hx(b[1]);
+    return `rgb(${A.map((v,k)=>Math.round(v+(B[k]-v)*f)).join(",")})`;}}
+  return st[st.length-1][1];}
+function fgFor(rgb){const m=rgb.match(/\d+/g).map(Number);return lum(m)>150?"#1B1512":"#F2ECDD";}
+
+/* element colour for ribbons: golden-angle hue by Z */
+const elCol=e=>`hsl(${(P[e].Z*137.508)%360} ${THEMES[curTheme].mode==="dark"?"46% 52%":"52% 44%"})`;
+
+let ptMode="one", sigSel=null;
+let xAx="S", yAx="delta";
+const badge=i=>{const d=D[i];
+  return `<span class="bdg t${d.tier}">${d.tier}</span> <span class="bdg ${d.chk?"ok":"cand"}">${d.chk?"READ":"candidate"}</span>`;};
+
+/* ===================== PERIODIC TABLE ===================== */
+const USAGE=AX.map((_,j)=>D.filter(d=>d.v[j]>0).length);
+function drawPT(){
+  const i=names.indexOf(current), d=D[i];
+  const vals=AX.map((e,j)=>ptMode==="one"?d.v[j]:USAGE[j]);
+  const mx=Math.max(...vals)||1;
+  const norm=v=>{if(v<=0)return -1;
+    return ptMode==="one"?Math.log10(v*1e4+1)/Math.log10(mx*1e4+1):v/mx;};
+  const cells=[];
+  for(let per=2;per<=6;per++)for(let g=1;g<=16;g++){
+    if(per<=3&&g>2&&g<13){cells.push('<div></div>');continue;}
+    const e=AX.find(s=>P[s].g===g&&P[s].p===per);
+    if(!e){cells.push('<div class="pt-ghost"></div>');continue;}
+    const j=P[e].j, v=vals[j], t=norm(v);
+    if(t<0){cells.push(`<button class="pt-cell off" data-e="${e}" title="${P[e].nm} — not in this alloy"><span class="sym">${e}</span></button>`);continue;}
+    const bg=heatAt(t), fg=fgFor(bg);
+    const lbl=ptMode==="one"?(v>=1?v.toFixed(1):v.toFixed(2)):v+"×";
+    const star=(d.basis&&d.basis[e]==="M")?"*":"";
+    cells.push(`<button class="pt-cell" data-e="${e}" style="background:${bg};color:${fg}"
+      title="${P[e].nm} — ${ptMode==="one"?v+" wt%"+(star?" (spec maximum)":""):v+" of "+NALL+" alloys"}">
+      <span class="sym">${e}</span><span class="val">${lbl}${star}</span></button>`);
+  }
+  document.getElementById("pt").innerHTML=cells.join("");
+  document.getElementById("ptTitle").innerHTML=ptMode==="one"
+    ? `Inside <b style="color:var(--saffron);font-weight:500">${current}</b>`
+    : `How many of the ${NALL} alloys contain each element`;
+  document.getElementById("ptMeta").innerHTML=ptMode==="one"
+    ? `${badge(i)} <span class="bdg tA" style="color:var(--muted)">${d.desig!=="-"?d.desig:d.std}</span>` : "";
+  const parts=AX.map((e,j)=>[e,d.v[j]]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  const hasStar=parts.some(([e])=>d.basis&&d.basis[e]==="M");
+  if(ptMode==="one"){
+    document.getElementById("ptCap").innerHTML=
+      `<b>${parts.length} element${parts.length>1?"s":""}, by weight.</b> `
+      + parts.map(([e,v])=>`${e}&nbsp;${v}`).join(" · ")
+      + `<br>Colour is that weight on a log scale, which is why a trace addition is still readable next to the base metal.`
+      + (hasStar?` An asterisk marks a figure taken from a specification <b>maximum</b> rather than a range, so read those as upper bounds.`:``)
+      + `<br>Source: ${d.std}${d.url?` · <a href="${d.url}" target="_blank" rel="noopener" style="color:var(--saffron)">open the specification</a>`:` · <b>not yet retrieved &mdash; this row is a candidate</b>`}`;
+  }else{
+    const rank=AX.map((e,j)=>[e,USAGE[j]]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+    const lit=rank.length, top=rank.slice(0,5);
+    document.getElementById("ptCap").innerHTML=
+      `<b>Colour and number are the same thing here:</b> how many alloys contain that element at all, no matter how little. Quantity is ignored — carbon at 0.08% counts the same as iron at 99%.`
+      + `<br>Most widely used: ` + top.map(([e,c])=>`<b>${e}</b>&nbsp;${c}`).join(" · ")
+      + `. Only <b>${lit} of the ${AX.length}</b> elements tracked here appear in any alloy at all.`
+      + `<br>Grey dashed cells are real periodic-table positions that no alloy in this set uses; empty space is where the table itself has no element. The lit region is strikingly narrow — industry works a small corner of the periodic table, and almost all of it sits in the first two transition rows.`;
+  }
+  document.getElementById("ptgrad").style.background=
+    `linear-gradient(90deg,${heatAt(0)},${heatAt(.5)},${heatAt(1)})`;
+  document.getElementById("ptScaleNote").textContent=ptMode==="one"
+    ? "number in each cell = weight %"
+    : `number in each cell = how many alloys, out of ${NALL}`;
+  document.querySelectorAll(".pt-cell").forEach(el=>el.addEventListener("click",()=>{
+    const e=el.dataset.e,j=P[e].j;
+    let best=null,bv=-1;IDX.forEach(i2=>{if(D[i2].v[j]>bv){bv=D[i2].v[j];best=i2;}});
+    if(best!=null&&bv>0)setRef(names[best]);}));
+}
+
+/* ===================== RIBBONS ===================== */
+function drawRibbons(){
+  const a=li(current);
+  const kin=IDX.map((i,b)=>[i,b,aR(a,b)]).sort((p,q)=>q[2]-p[2]).slice(0,6);
+  document.getElementById("ribbons").innerHTML=kin.map(([i,b,sc])=>{
+    const d=D[i];
+    const segs=AX.map((e,j)=>[e,d.v[j]]).filter(x=>x[1]>0).sort((x,y)=>y[1]-x[1]);
+    const bar=segs.map(([e,v])=>{const c=elCol(e);
+      return `<div class="rib-seg" style="width:${v}%;background:${c};color:${fgFor(getComputedStyle(document.body).color.startsWith("rgb")?"rgb(20,20,20)":"rgb(20,20,20)")}"
+        title="${P[e].nm} ${v} wt%">${v>6?e:""}</div>`;}).join("");
+    return `<div class="rib-row ${i===names.indexOf(current)?"on":""} ${D[i].chk?"":"cand-row"}" data-nm="${d.n}">
+      <div class="rn">${d.n}<i>${i===names.indexOf(current)?"reference":"affinity "+sc} · ${d.tier}${d.chk?"":" · candidate"}</i></div>
+      <div class="rib-bar">${bar}</div></div>`;}).join("");
+  document.querySelectorAll(".rib-row").forEach(el=>el.addEventListener("click",()=>setRef(el.dataset.nm)));
+}
+
+/* ===================== BARS ===================== */
+function bars(id,distId,aff,who){
+  const a=li(current);
+  document.getElementById(who).textContent=current;
+  const arr=IDX.map((i,b)=>[i,b]).filter(([i])=>names[i]!==current)
+    .map(([i,b])=>[names[i],aff(a,b),D[i].chk]).sort((p,q)=>q[1]-p[1]);
+  document.getElementById(id).innerHTML=arr.slice(0,10).map(([nm,sc,ok])=>`
+    <div class="bar-row ${ok?"":"cand-row"}" data-nm="${nm}" tabindex="0" role="button">
+      <div class="nm">${nm}</div><div class="track"><div class="fill" style="width:${sc}%"></div></div>
+      <div class="sc">${sc}</div></div>`).join("");
+  document.querySelectorAll(`#${id} .bar-row`).forEach(el=>{
+    const go=()=>setRef(el.dataset.nm);
+    el.addEventListener("click",go);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});});
+  const far=arr.slice(-3).reverse();
+  document.getElementById(distId).innerHTML="Most distant: "+far.map(([nm,sc])=>`<b>${nm}</b> (${sc})`).join(" · ");
+}
+
+/* ===================== RADAR ===================== */
+function drawRadar(){
+  const a=li(current);
+  const arr=IDX.map((i,b)=>[i,b]).filter(([i])=>names[i]!==current)
+    .map(([i,b])=>[i,aB(a,b)]).sort((p,q)=>q[1]-p[1]);
+  if(!arr.length)return;
+  const nb=arr[0][0];
+  const lo=DKEYS.map(([k])=>Math.min(...IDX.map(i=>DLOG.has(k)?Math.log10(DESC[i][k]+1e-9):DESC[i][k])));
+  const hi=DKEYS.map(([k])=>Math.max(...IDX.map(i=>DLOG.has(k)?Math.log10(DESC[i][k]+1e-9):DESC[i][k])));
+  const vals=i=>DKEYS.map(([k],j)=>{const v=DLOG.has(k)?Math.log10(DESC[i][k]+1e-9):DESC[i][k];
+    return Math.round(10*(v-lo[j])/((hi[j]-lo[j])||1));});
+  const theta=DKEYS.map(x=>x[1]).concat(DKEYS[0][1]);
+  const mk=(i,col,fill)=>{const v=vals(i);return{type:"scatterpolar",r:v.concat(v[0]),theta,
+    name:names[i],mode:"lines",line:{color:col,width:2},fill:"toself",fillcolor:fill,
+    hovertemplate:"%{theta}: %{r}/10<extra>"+names[i]+"</extra>"};};
+  PL("radar",[mk(nb,TP.accent2,hexA(TP.accent2,.14)),
+    mk(names.indexOf(current),TP.accent,hexA(TP.accent,.22))],
+    {...BL(),showlegend:true,legend:{orientation:"h",y:-.1,x:.5,xanchor:"center",font:{size:12,color:TP.font}},
+     polar:{bgcolor:"rgba(0,0,0,0)",radialaxis:{range:[0,10],gridcolor:TP.grid,
+       tickfont:{family:MONO,size:9,color:TP.tick2},angle:90,tickangle:90},
+       angularaxis:{gridcolor:TP.grid,tickfont:{size:10,color:TP.tick}}},
+     margin:{l:52,r:52,t:22,b:48}});
+}
+
+/* ===================== CLUSTERS / MDS / MATRIX / COOC ===================== */
+function drawClusters(){
+  document.getElementById("clusters").innerHTML=CLI.map(ci=>`
+    <div class="cl-card" style="--cc:${ci.color}">
+      <div class="cl-size">${ci.size} alloys</div>
+      <div class="cl-name">${ci.name}</div>
+      <div class="cl-reps">core: ${ci.reps.join(" · ")}</div>
+      <div class="cl-tags">${ci.top.map(e=>`<span class="tag">${P[e].nm}</span>`).join("")}</div>
+      <div class="cl-mem">${ci.members.join(", ")}</div></div>`).join("");
+}
+function drawMDS(){
+  const traces=CLI.map(ci=>{const idx=IDX.map((i,a)=>a).filter(a=>KM.asg[a]===ci.c);
+    return{type:"scatter",mode:"markers+text",name:ci.name,
+      x:idx.map(a=>EMB.x[a]),y:idx.map(a=>EMB.y[a]),text:idx.map(a=>names[IDX[a]]),
+      textposition:"top center",textfont:{size:9,color:TP.tick,family:"Inter"},
+      marker:{size:idx.map(a=>D[IDX[a]].chk?13:9),color:ci.color,
+        line:{color:TP.border,width:1.4},opacity:idx.map(a=>D[IDX[a]].chk?.98:.5),
+        symbol:idx.map(a=>D[IDX[a]].chk?"circle":"circle-open")},
+      hovertemplate:"<b>%{text}</b><extra>"+ci.name+"</extra>"};});
+  const gd=PL("mds",traces,{...BL(),showlegend:false,
+    xaxis:{visible:false},yaxis:{visible:false,scaleanchor:"x"},
+    margin:{l:8,r:8,t:8,b:8},hovermode:"closest"});
+  document.getElementById("mdsleg").innerHTML=CLI.map(ci=>
+    `<span><i style="background:${ci.color}"></i>${ci.name}</span>`).join("")
+    +`<span style="color:var(--muted2)">hollow marker = candidate row</span>`;
+  if(gd){if(gd.removeAllListeners)gd.removeAllListeners("plotly_click");
+    gd.on("plotly_click",ev=>{const p=ev.points&&ev.points[0];if(p)setRef(p.text);});}
+}
+function drawMatrix(){
+  let order=[];CLI.forEach(ci=>{order=order.concat(IDX.map((i,a)=>a).filter(a=>KM.asg[a]===ci.c)
+    .sort((x,y)=>EMB.x[x]-EMB.x[y]));});
+  const lab=order.map(a=>names[IDX[a]]+(D[IDX[a]].chk?" ✓":""));
+  const z=order.map(a=>order.map(b=>aR(a,b)));
+  PL("matrix",[{type:"heatmap",z,x:lab,y:lab,colorscale:HEAT(),zmin:0,zmax:100,xgap:1,ygap:1,
+    colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:TP.tick}},thickness:10,len:.6,
+      tickfont:{family:MONO,size:10,color:TP.tick},outlinewidth:0},
+    hovertemplate:"%{y} ↔ %{x}<br>affinity %{z}<extra></extra>"}],
+    {...BL(),xaxis:{tickfont:{size:8,color:TP.tick},tickangle:-60,showgrid:false,constrain:"domain"},
+     yaxis:{tickfont:{size:8,color:TP.tick},autorange:"reversed",showgrid:false,scaleanchor:"x",constrain:"domain"},
+     margin:{l:150,r:10,t:10,b:150}});
+}
+function drawCooc(){
+  const used=AX.filter((e,j)=>IDX.some(i=>D[i].v[j]>0));
+  const n=used.length, m=IDX.length;
+  const has=used.map(e=>IDX.map(i=>D[i].v[P[e].j]>0));
+  /* Jaccard, not a mass-weighted product. The question is "do these two turn up in
+     the same alloys", which is about presence, not proportion — and a mass-weighted
+     score is swamped by the base metals, flattening 93% of the matrix into one shade. */
+  const J=(a,b)=>{let inter=0,uni=0;
+    for(let k=0;k<m;k++){const x=has[a][k],y=has[b][k];if(x&&y)inter++;if(x||y)uni++;}
+    return uni?100*inter/uni:0;};
+  const jm=Array.from({length:n},(_,a)=>Array.from({length:n},(_,b)=>J(a,b)));
+  /* Seriation. Ordered by atomic number the blocks are scattered and unreadable;
+     ordering by position in the co-occurrence space puts partners side by side. */
+  const dist=jm.map((r,a)=>r.map((v,b)=>a===b?0:100-v));
+  const em=mds(dist,n);
+  const ord=[...Array(n).keys()].sort((a,b)=>em.x[a]-em.x[b]);
+  const lab=ord.map(a=>used[a]);
+  const z=ord.map(a=>ord.map(b=>a===b?null:+jm[a][b].toFixed(1)));
+  PL("cooc",[{type:"heatmap",z,x:lab,y:lab,colorscale:HEAT(),zmin:0,zmax:70,xgap:1,ygap:1,
+    colorbar:{title:{text:"% of alloys<br>holding either<br>that hold both",
+      font:{family:MONO,size:10,color:TP.tick}},thickness:10,len:.62,
+      tickfont:{family:MONO,size:10,color:TP.tick},outlinewidth:0},
+    hovertemplate:"%{y} + %{x}<br>%{z}% of the alloys containing either contain both<extra></extra>"}],
+    {...BL(),xaxis:{tickfont:{size:10,color:TP.tick},showgrid:false,constrain:"domain"},
+     yaxis:{tickfont:{size:10,color:TP.tick},autorange:"reversed",showgrid:false,scaleanchor:"x",constrain:"domain"},
+     margin:{l:44,r:10,t:10,b:44}});
+}
+
+/* ===================== BEHAVIOUR SCATTER + DIVERGENCE ===================== */
+function drawScat(){
+  const a=li(current);
+  const gx=DKEYS.find(d=>d[0]===xAx),gy=DKEYS.find(d=>d[0]===yAx);
+  const z=IDX.map((_,b)=>aB(a,b));
+  const gd=PL("scat",[{type:"scatter",mode:"markers+text",
+    x:IDX.map(i=>DESC[i][xAx]),y:IDX.map(i=>DESC[i][yAx]),
+    text:IDX.map(i=>names[i]),textposition:"top center",
+    textfont:{size:9,color:TP.tick,family:"Inter"},
+    marker:{size:IDX.map((i,b)=>b===a?19:(D[i].chk?13:9)),color:z,colorscale:HEAT(),cmin:0,cmax:100,
+      line:{color:IDX.map((i,b)=>b===a?TP.font:TP.border),width:IDX.map((i,b)=>b===a?2.5:1)},
+      opacity:IDX.map(i=>D[i].chk?1:.55),
+      colorbar:{title:{text:"affinity",font:{family:MONO,size:11,color:TP.tick}},thickness:10,len:.7,
+        tickfont:{family:MONO,size:10,color:TP.tick},outlinewidth:0}},
+    hovertemplate:"<b>%{text}</b><br>"+gx[1]+" %{x:.3g}<br>"+gy[1]+" %{y:.3g}<extra></extra>"}],
+    {...BL(),showlegend:false,
+     xaxis:{title:{text:gx[1]+" ("+gx[2]+")",font:{size:12,color:TP.tick}},type:DLOG.has(xAx)?"log":"linear",
+       gridcolor:TP.grid,zeroline:false,tickfont:{size:10,color:TP.tick2},linecolor:TP.grid},
+     yaxis:{title:{text:gy[1]+" ("+gy[2]+")",font:{size:12,color:TP.tick}},type:DLOG.has(yAx)?"log":"linear",
+       gridcolor:TP.grid,zeroline:false,tickfont:{size:10,color:TP.tick2},linecolor:TP.grid},
+     margin:{l:70,r:8,t:10,b:56},hovermode:"closest"});
+  if(gd){if(gd.removeAllListeners)gd.removeAllListeners("plotly_click");
+    gd.on("plotly_click",ev=>{const p=ev.points&&ev.points[0];if(p)setRef(p.text);});}
+}
+function drawDiverge(){
+  const n=IDX.length;
+  const rank=(M,sig)=>{const R=[];for(let a=0;a<n;a++){
+    const o=[...Array(n).keys()].filter(b=>b!==a).sort((x,y)=>M[a][x]-M[a][y]);
+    const r=Array(n).fill(0);o.forEach((b,k)=>r[b]=k+1);R.push(r);}return R;};
+  const RR=rank(RD),RB=rank(BD),seen=new Set(),out=[];
+  for(let a=0;a<n;a++)for(let b=0;b<n;b++){if(a===b)continue;
+    const key=a<b?a+"-"+b:b+"-"+a;if(seen.has(key))continue;seen.add(key);
+    out.push([a,b,Math.abs(RR[a][b]-RB[a][b]),RR[a][b],RB[a][b]]);}
+  out.sort((x,y)=>y[2]-x[2]);
+  document.getElementById("diverge").innerHTML=out.slice(0,9).map(([a,b,g,r1,r2])=>{
+    const kind=r1>r2?"convergence":"near-miss";
+    return `<div class="div-row"><div class="a">${names[IDX[a]]} <i>&harr;</i> ${names[IDX[b]]}
+      <i style="display:block;font-size:12px;margin-top:2px">${kind==="convergence"
+        ? "different recipes, similar behaviour" : "similar recipes, different behaviour"}</i></div>
+      <div class="b">recipe #${r1} &nbsp;behaviour #${r2}<br><em>gap ${g}</em></div></div>`;}).join("");
+}
+</script>
+<script>
+/* ===================== TABLES ===================== */
+function drawSrcTable(){
+  const head=`<thead><tr><th>Alloy</th><th>Tier</th><th>Status</th><th>Designation</th>
+    <th>Standard / reference</th><th>Unit</th><th>Source</th></tr></thead>`;
+  const body=D.map((d,i)=>`<tr class="${d.chk?"":"cand-row"}">
+    <td class="name">${d.n}</td>
+    <td><span class="bdg t${d.tier}">${d.tier}</span></td>
+    <td><span class="bdg ${d.chk?"ok":"cand"}">${d.chk?"READ":"candidate"}</span></td>
+    <td class="s">${d.desig&&d.desig!=="-"?d.desig:"&mdash;"}</td>
+    <td class="s">${d.std}</td><td class="s">${d.unit}</td>
+    <td class="s">${d.url?`<a href="${d.url}" target="_blank" rel="noopener">open</a>`:"&mdash;"}</td>
+  </tr>`).join("");
+  document.getElementById("srcTable").innerHTML=head+"<tbody>"+body+"</tbody>";
+}
+function drawDataTable(){
+  const head=`<thead><tr><th>Alloy</th><th>Tier</th>${AX.map(e=>`<th title="${P[e].nm}">${e}</th>`).join("")}</tr></thead>`;
+  const body=D.map((d,i)=>{
+    const cells=AX.map((e,j)=>{const v=d.v[j];
+      if(v<=0)return `<td class="v zero">&ndash;</td>`;
+      const t=Math.log10(v*1e4+1)/Math.log10(1e6+1);
+      const bg=heatAt(t);const star=(d.basis&&d.basis[e]==="M")?"*":"";
+      return `<td class="v" style="background:${bg};color:${fgFor(bg)}"
+        title="${P[e].nm} ${v} wt%${star?" (spec maximum)":""}">${v>=1?v.toFixed(1):v.toFixed(2)}${star}</td>`;}).join("");
+    return `<tr class="${d.chk?"":"cand-row"}"><td class="name">${d.n}</td>
+      <td class="reg"><span class="bdg t${d.tier}">${d.tier}</span>${d.chk?"":" <span class='bdg cand'>c</span>"}</td>${cells}</tr>`;}).join("");
+  document.getElementById("dataTable").innerHTML=head+"<tbody>"+body+"</tbody>";
+}
+function drawDescTable(){
+  const cols=DKEYS;
+  const lo=cols.map(([k])=>Math.min(...D.map((_,i)=>DESC[i][k])));
+  const hi=cols.map(([k])=>Math.max(...D.map((_,i)=>DESC[i][k])));
+  const head=`<thead><tr><th>Alloy</th>${cols.map(c=>`<th>${c[1]}<br><span style="opacity:.6">${c[2]}</span></th>`).join("")}</tr></thead>`;
+  const body=D.map((d,i)=>`<tr class="${d.chk?"":"cand-row"}"><td class="name">${d.n}</td>`+
+    cols.map((c,j)=>{const v=DESC[i][c[0]];
+      const t=DLOG.has(c[0])
+        ? (Math.log10(v+1e-9)-Math.log10(lo[j]+1e-9))/((Math.log10(hi[j]+1e-9)-Math.log10(lo[j]+1e-9))||1)
+        : (v-lo[j])/((hi[j]-lo[j])||1);
+      const bg=heatAt(t);
+      return `<td class="v" style="background:${bg};color:${fgFor(bg)}">${
+        v>=1000?Math.round(v):v>=10?v.toFixed(1):v.toFixed(2)}</td>`;}).join("")+"</tr>").join("");
+  document.getElementById("descTable").innerHTML=head+"<tbody>"+body+"</tbody>";
+}
+
+/* ===================== SIGNATURE ELEMENT ===================== */
+const GLOBAL_MEAN=AX.map((e,j)=>D.reduce((s,d)=>s+d.v[j],0)/NALL);
+const SIG=D.map(d=>{
+  let best=null,bl=-1;
+  AX.forEach((e,j)=>{const v=d.v[j];if(v<0.3)return;
+    const lift=v/(GLOBAL_MEAN[j]||1e-9);
+    if(lift>bl){bl=lift;best=e;}});
+  if(!best){let mx=-1;AX.forEach((e,j)=>{if(d.v[j]>mx){mx=d.v[j];best=e;}});bl=1;}
+  return {el:best,lift:bl,pct:d.v[P[best].j]};
+});
+function sigCard(i){
+  const s=SIG[i],e=s.el,bg=heatAt(.72),fg=fgFor(bg),d=D[i];
+  document.getElementById("sigStage").innerHTML=`
+    <div class="sig-tile" style="background:${bg};color:${fg}">
+      <span class="z">${P[e].Z}</span><span class="s">${e}</span>
+      <span class="m">${P[e].mass}</span></div>
+    <div class="sig-alloy">${d.n}</div>
+    <div class="sig-el">${P[e].nm}</div>
+    <div class="sig-desc">${s.pct} wt% of this alloy, against ${GLOBAL_MEAN[P[e].j].toFixed(2)}% averaged
+      across every alloy here. ${e===AX[d.v.indexOf(Math.max(...d.v))]
+        ? "It is also the base metal — for this alloy the obvious answer is the right one."
+        : "The base metal is "+AX[d.v.indexOf(Math.max(...d.v))]+", but this is what does the defining."}</div>
+    <div class="sig-lift">lift <b>${s.lift.toFixed(1)}×</b> &nbsp;·&nbsp; ${d.std}</div>
+    <div style="margin-top:12px">${badge(i)}</div>`;
+  document.querySelectorAll(".sig-card").forEach(c=>c.classList.toggle("on",c.dataset.i==i));
+  sigSel=i;
+}
+function drawSig(){
+  document.getElementById("sigGrid").innerHTML=D.map((d,i)=>{
+    const e=SIG[i].el,bg=heatAt(.6);
+    return `<button class="sig-card ${d.chk?"":"cand-row"}" data-i="${i}">
+      <span class="mini" style="background:${bg};color:${fgFor(bg)}">${e}</span>
+      <span class="txt"><span class="an">${d.n}</span>
+      <span class="ac">${P[e].nm} · ${SIG[i].lift.toFixed(1)}×</span></span></button>`;}).join("");
+  document.querySelectorAll(".sig-card").forEach(c=>c.addEventListener("click",()=>sigCard(+c.dataset.i)));
+  const uniq=new Set(SIG.map(s=>s.el)).size;
+  document.getElementById("sigCount").textContent=
+    `${uniq} different elements act as a signature across ${NALL} alloys.`;
+  sigCard(sigSel==null?names.indexOf(current):sigSel);
+}
+
+/* ===================== NOTEBOOK ===================== */
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function hl(c){return esc(c)
+  .replace(/(#.*)$/gm,'<span class="c">$1</span>')
+  .replace(/('[^']*')/g,'<span class="s">$1</span>')
+  .replace(/\b(import|from|as|def|return|for|in|if|else|print|lambda|while)\b/g,'<span class="k">$1</span>')
+  .replace(/\b(\d+\.?\d*(e-?\d+)?)\b/g,'<span class="nu">$1</span>');}
+function md(t){return t.trim().split(/\n\n+/).map(p=>{
+  if(/^#\s/.test(p))return `<h2>${esc(p.replace(/^#\s/,""))}</h2>`;
+  if(/^##\s/.test(p))return `<h2>${esc(p.replace(/^##\s/,""))}</h2>`;
+  if(/^###\s/.test(p))return `<h3>${esc(p.replace(/^###\s/,""))}</h3>`;
+  if(/^---$/.test(p.trim()))return "<hr>";
+  if(/^>/.test(p))return `<blockquote>${inl(p.replace(/^>\s?/gm,""))}</blockquote>`;
+  if(/^[-*]\s/m.test(p))return "<ul>"+p.split("\n").map(l=>`<li>${inl(l.replace(/^[-*]\s/,""))}</li>`).join("")+"</ul>";
+  return `<p>${inl(p)}</p>`;}).join("");}
+function inl(s){return esc(s).replace(/`([^`]+)`/g,"<code>$1</code>")
+  .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/\n/g," ");}
+const NBCELLS=[...document.querySelectorAll('script[type="text/x-nb"]')]
+  .map(s=>({t:s.dataset.t,src:s.textContent.replace(/^\n/,"").replace(/\s+$/,"")}));
+function drawNB(){
+  let k=0;
+  document.getElementById("nbcells").innerHTML=NBCELLS.map(c=>c.t==="md"
+    ? `<div class="nb-md">${md(c.src)}</div>`
+    : `<div class="nb-code"><div class="nb-prompt">In [${++k}]:</div><pre>${hl(c.src)}</pre></div>`).join("");
+}
+document.getElementById("dlipynb").addEventListener("click",()=>{
+  const nb={cells:NBCELLS.map(c=>({cell_type:c.t==="md"?"markdown":"code",metadata:{},
+      source:c.src.split("\n").map((l,i,a)=>i===a.length-1?l:l+"\n"),
+      ...(c.t==="md"?{}:{outputs:[],execution_count:null})})),
+    metadata:{kernelspec:{display_name:"Python 3",language:"python",name:"python3"},
+      language_info:{name:"python",version:"3.11"}},nbformat:4,nbformat_minor:5};
+  const b=new Blob([JSON.stringify(nb,null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(b);
+  a.download="alloy-atlas.ipynb";a.click();URL.revokeObjectURL(a.href);});
+
+/* ===================== ORCHESTRATION ===================== */
+function setRef(nm){if(!nm||nm===current)return;current=nm;
+  const s1=document.getElementById("ref"),s2=document.getElementById("ref2");
+  if(s1)s1.value=nm; if(s2)s2.value=nm;
+  renderAll();}
+function renderAll(){
+  safe(drawPT);safe(drawRibbons);
+  bars("bars","distant",aR,"whoName");
+  bars("bars2","distant2",aB,"whoName2");
+  [drawClusters,drawMDS,drawMatrix,drawCooc,drawScat,drawRadar,drawDiverge].forEach(safe);
+}
+function fullRender(){rebuild();fillSelects();renderAll();
+  drawSrcTable();drawDataTable();drawDescTable();drawSig();
+  const v=D.filter(d=>d.chk).length;
+  document.getElementById("sN").textContent=NALL;
+  document.getElementById("sV").textContent=v;
+  document.getElementById("sE").textContent=AX.length;
+  document.getElementById("sP").textContent=(NALL*(NALL-1)/2).toLocaleString("en-US");
+  document.getElementById("wV").textContent=v;document.getElementById("wN").textContent=NALL;}
+function fillSelects(){
+  const groups={};IDX.forEach(i=>{(groups[D[i].cat]=groups[D[i].cat]||[]).push(i);});
+  const html=Object.keys(groups).map(g=>`<optgroup label="${g}">`+
+    groups[g].map(i=>`<option value="${names[i]}">${names[i]}${D[i].chk?" ✓":""}</option>`).join("")
+    +"</optgroup>").join("");
+  ["ref","ref2"].forEach(id=>{const s=document.getElementById(id);if(!s)return;
+    s.innerHTML=html;s.value=current;});
+  const ax=DKEYS.map(d=>`<option value="${d[0]}">${d[1]}</option>`).join("");
+  const x=document.getElementById("xAx"),y=document.getElementById("yAx");
+  if(x&&!x.innerHTML){x.innerHTML=ax;x.value=xAx;y.innerHTML=ax;y.value=yAx;}
+}
+
+/* ===================== THEME ENGINE ===================== */
+function applyTheme(k){
+  const t=THEMES[k];curTheme=k;TP=t.p;
+  const r=document.documentElement.style;
+  Object.entries(t.css).forEach(([n,v])=>r.setProperty("--"+n,v));
+  r.setProperty("--onacc",t.onacc);
+  r.setProperty("--bar",t.mode==="dark"?hexA(t.css.ink,.85):hexA(t.css.ink,.88));
+  document.documentElement.style.background=t.css.ink;
+  document.getElementById("themesw").style.background=
+    `conic-gradient(from 210deg,${t.css.h5},${t.css.h4},${t.css.h3},${t.css.saffron},${t.css.h5})`;
+  document.querySelector("#themebtn .tlbl").textContent=t.label;
+  document.querySelectorAll(".titem").forEach(b=>b.classList.toggle("on",b.dataset.k===k));
+  document.querySelectorAll(".scalekey .grad").forEach(g=>
+    g.style.background=`linear-gradient(90deg,${heatAt(0)},${heatAt(.5)},${heatAt(1)})`);
+  try{localStorage.setItem("atlasTheme",k);}catch(e){}
+  if(current)fullRenderLite();
+}
+function fullRenderLite(){renderAll();drawDataTable();drawDescTable();drawSig();}
+(function themeInit(){
+  const menu=document.getElementById("thememenu");
+  menu.innerHTML=Object.entries(THEMES).map(([k,t])=>`
+    <button class="titem" data-k="${k}" role="menuitem">
+      <span class="sw" style="background:conic-gradient(from 210deg,${t.css.h5},${t.css.h4},${t.css.h3},${t.css.saffron},${t.css.h5})"></span>
+      ${t.label}<span class="mode">${t.mode}</span></button>`).join("");
+  menu.querySelectorAll(".titem").forEach(b=>b.addEventListener("click",()=>{
+    applyTheme(b.dataset.k);menu.classList.remove("open");
+    document.getElementById("themebtn").setAttribute("aria-expanded","false");}));
+  const btn=document.getElementById("themebtn");
+  btn.addEventListener("click",e=>{e.stopPropagation();
+    const o=menu.classList.toggle("open");btn.setAttribute("aria-expanded",o?"true":"false");});
+  document.addEventListener("click",()=>{menu.classList.remove("open");
+    btn.setAttribute("aria-expanded","false");});
+})();
+
+/* ===================== TABS ===================== */
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on");
+  document.querySelectorAll(".tabpane").forEach(p=>p.hidden=(p.id!==t.dataset.tab));
+  window.scrollTo({top:0,behavior:"instant"});
+  setTimeout(()=>{["mds","matrix","cooc","scat","radar"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.offsetParent!==null&&window.Plotly)Plotly.Plots.resize(el);});},40);
+}));
+
+/* ===================== BOOT ===================== */
+function boot(){
+  current=names[0];
+  /* Wire every control BEFORE anything is drawn. Rendering must never be able to
+     stand between the page loading and the controls working. */
+  const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);};
+  on("ref","change",e=>setRef(e.target.value));
+  on("ref2","change",e=>setRef(e.target.value));
+  on("xAx","change",e=>{xAx=e.target.value;safe(drawScat);});
+  on("yAx","change",e=>{yAx=e.target.value;safe(drawScat);});
+  document.querySelectorAll("#ptmode button").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll("#ptmode button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");ptMode=b.dataset.m;safe(drawPT);}));
+  document.querySelectorAll("#rowmode button").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll("#rowmode button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");rowMode=b.dataset.m;safe(fullRender);}));
+  window.addEventListener("resize",()=>{["mds","matrix","cooc","scat","radar"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.offsetParent!==null&&window.Plotly)try{Plotly.Plots.resize(el);}catch(e){}});});
+
+  let saved="saffron";try{saved=localStorage.getItem("atlasTheme")||"saffron";}catch(e){}
+  if(!THEMES[saved])saved="saffron";
+  safe(()=>applyTheme(saved));
+  safe(fullRender);
+  safe(drawNB);
+
+  /* The plotting library is loaded from a CDN and may be blocked, slow, or replaced
+     by the async fallback. If it is not here yet, say so plainly and redraw the
+     moment it arrives — the rest of the atlas is already usable without it. */
+  if(!window.Plotly){
+    document.querySelectorAll(".plot").forEach(p=>p.innerHTML=
+      '<div class="loaderr">Waiting for the plotting library. The periodic table, the ribbons, the rankings and every table below are already working.</div>');
+    let tries=0;
+    const t=setInterval(()=>{
+      if(window.Plotly){clearInterval(t);safe(renderAll);}
+      else if(++tries>60){clearInterval(t);
+        document.querySelectorAll(".plot").forEach(p=>p.innerHTML=
+          '<div class="loaderr">The plotting library could not be loaded, so the charts are unavailable. Everything else on this page still works.</div>');}
+    },250);
+  }
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+</script>
+</div>
+</body>
+</html>
